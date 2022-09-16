@@ -1,0 +1,15 @@
+token: MTAxODIwOTI3MTMxMTI1NzYxMg.GBkWBc.3QbGwj2UbeYVw3-9fCKYD7p1nLM7ykPRiDtTfA
+database: database.json
+faq: faq.json
+persist: persist.json
+valid_color: 0x4287f5
+invalid_color: 0xeb4034
+modlogs_channel: 1019215901284900974
+lock_bypass: 1019557597898080256
+suggestions: 1019570953346371655
+suggestion_bl: 1019571036875931709
+names:
+  - hi
+  - bye
+  - pog
+color_role: 1019933300653035540
