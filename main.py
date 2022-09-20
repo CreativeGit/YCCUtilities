@@ -4,9 +4,35 @@ import os
 import json
 import time
 from discord.ext import commands
+from discord.ui import View, Button
+
+help_items = {
+	1: ['this is not a command': 'this is not a description', 'this is a test': 'this is a test too'],
+	2: ['this is not a command 2': 'this is not a description 2', 'this is a test 2': 'this is a test too 2']
+}
+
+class HelpView(View):
+	@discord.ui.button(label='Previous', emoji='⬅️', style=discord.ButtonStyle.blurple)
+	async def previous(self, button, interaction):
+		return 
+
+class HelpEmbed(discord.Embed):
+	def __init__(self, page: int):
+		title = f'Help - Page number {page}'
+		super().__init__(title=title)
+		for command in help_items[page]:
+			
+
 
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix='>', intents=intents)
+bot = commands.Bot(command_prefix=commands.when_mentioned_or('>'), intents=intents)
+bot.remove_command('help')
+
+@bot.group(invoke_without_command=True)
+async def help(ctx):
+
+
+	await ctx.send()
 
 def is_convertible(arg):
 	return int(arg[:-1]) * {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}[arg[-1]] if arg[-1] in 'smhd' else False
@@ -22,52 +48,67 @@ def load_cogs():
 			bot.load_extension(f'cogs.{file[:-3]}') # loads every python file
 			print(f'Loaded {file}')
 
-def fetch_user_data(user_id: int): # gets the users data from the database
+def fetch_user_data(user_id):
 	with open(config.DATABASE, 'r') as f:
 		text = json.load(f)
-	if text.get(str(user_id)) is None: # if the user doesn't have any past data.
-		text[str(user_id)] = {
-			'violations': {
-				'bans': [],
-				'kicks': [],
-				'mutes': [],
-				'cbans': [],
-				'warns': []
-			},
+
+	if text['users'].get(str(user_id)) is None:
+		text['users'][str(user_id)] = {
+			'violations': [],
 			'note': 'Nothing special.'
 		}
+
 		with open(config.DATABASE, 'w') as f:
 			json.dump(text, f, indent=4)
-	data = text[str(user_id)]
-	data['violations']['bans'][:] = [Punishment.python(_data) for _data in data['violations']['bans']]
-	data['violations']['kicks'][:] = [Punishment.python(_data) for _data in data['violations']['kicks']]
-	data['violations']['mutes'][:] = [Punishment.python(_data) for _data in data['violations']['mutes']]
-	data['violations']['cbans'][:] = [Punishment.python(_data) for _data in data['violations']['cbans']]
-	data['violations']['warns'][:] = [Punishment.python(_data) for _data in data['violations']['warns']]
 
-	return data
+	return text['users'][str(user_id)]
 
-def dump_user_data(user_id: int, data):
+def punish(user_id, punishment):
 	with open(config.DATABASE, 'r') as f:
 		text = json.load(f)
-	for subclass in data['violations']:
-		data['violations'][subclass] = list(map(lambda i: i.json(), data['violations'][subclass]))
-	text[str(user_id)] = data
+	if text['users'].get(str(user_id)) is None: # if the user doesn't have any past data.
+		text['users'][str(user_id)] = {
+			'violations': [],
+			'note': 'Nothing special.'
+		}
+
+	text['case_count'] += 1
+	case = text['case_count']
+	text['cases'].append(punishment.json())
+	text['users'][str(user_id)]['violations'].append(case)
+
+	with open(config.DATABASE, 'w') as f:
+		json.dump(text, f, indent=4)
+
+	return case
+
+def set_note(user_id, note):
+	with open(config.DATABASE, 'r') as f:
+		text = json.load(f)
+	if text['users'].get(str(user_id)) is None: # if the user doesn't have any past data.
+		text['users'][str(user_id)] = {
+			'violations': [],
+			'note': 'Nothing special.'
+		}
+
+	text['users'][str(user_id)]['note'] = note
 
 	with open(config.DATABASE, 'w') as f:
 		json.dump(text, f, indent=4)
 
 class PunishmentMaster:
-	def __init__(self, ctx=0, reason=0, user=0, link=0, duration=0):
+	def __init__(self, ctx=0, reason=0, user=0, link=0, infraction=0, duration=0):
 		self.issued_on = round(time.time())
 		self.responsible_mod = ctx.author.id if ctx != 0 else ctx
 		self.reason = reason
 		self.inflicted_on = user.id if user != 0 else user
 		self.link = link
+		self.infraction = infraction
 		with open(config.DATABASE, 'r') as f:
 			text = json.load(f)
 
-		self.case_number = text['case_count'] + 1
+		self.case_number = text['case_count']
+
 		if duration:
 			self.duration = duration
 
@@ -75,8 +116,8 @@ class PunishmentMaster:
 		return vars(self)
 
 class Punishment(PunishmentMaster):
-	def __init__(self, ctx, reason, user, link, duration=None):
-		super().__init__(ctx, reason, user, link, duration)
+	def __init__(self, ctx, reason, user, link, infraction, duration=None):
+		super().__init__(ctx, reason, user, link, infraction, duration)
 
 	def json(self):
 		return vars(self)
@@ -94,6 +135,7 @@ class Punishment(PunishmentMaster):
 		base.inflicted_on = data['inflicted_on']
 		base.link = data['link']
 		base.case_number = data['case_number']
+		base.infraction = data['infraction']
 		if data.get('duration') is not None:
 			base.duration = data['duration']
 		return base
@@ -101,6 +143,7 @@ class Punishment(PunishmentMaster):
 @bot.event
 async def on_ready():
 	print(f'{bot.user} is up and ready to go!')
+
 
 load_cogs()
 bot.run(config.TOKEN)
