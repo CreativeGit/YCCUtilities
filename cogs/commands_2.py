@@ -6,13 +6,15 @@ from discord.ext.commands import has_permissions, has_role
 from discord.ext.commands import MemberConverter, RoleConverter
 from config import PERSIST, VALID_COLOR, INVALID_COLOR
 from config import SUGGESTIONS_CHANNEL, SUGGESTIONS_BL, NAMES
-from config import COLOR_ROLE
+from config import COLOR_ROLE, MODLOGS, DATABASE
 from main import Duration, Punishment
-from main import fetch_user_data as fud, dump_user_data as dud
+from main import fetch_user_data as fud, punish
 import json
 import random
 from datetime import timedelta, datetime, timezone
 import re
+import string
+from normalize import normalize
 
 class LinkMod:
 	def __init__(self, restrictions):
@@ -79,6 +81,10 @@ class SuggestionEmbed(discord.Embed):
 class CommandSet2(commands.Cog):
 	def __init__(self, client):
 		self.client = client
+
+	@commands.Cog.listener()
+	async def on_ready(self):
+		self.modlog_channel = await self.client.fetch_channel(MODLOGS)
 
 	@commands.Cog.listener()
 	async def on_member_join(self, member):
@@ -218,14 +224,85 @@ class CommandSet2(commands.Cog):
 	@commands.command()
 	@has_permissions(manage_channels=True)
 	async def warn(self, ctx, member: MemberConverter, *, reason='Reason not provided'):
-		log_data = Punishment(ctx, reason, member, ctx.message.jump_url)
-
-		user_data = fud(member.id)
-		user_data['violations']['warns'].append(log_data)
-		dud(member.id, user_data)
+		log_data = Punishment(ctx, reason, member, ctx.message.jump_url, 'warn')
+		case = punish(member.id, log_data)
 
 		embed = discord.Embed(title='User has been warned.', description=f'Reason: **{reason}**', color=VALID_COLOR)
 		await ctx.send(embed=embed)
+
+		modlog_embed = discord.Embed(title='Warn Command Issued', description=f'Moderator {ctx.author} warned {member}.', color=VALID_COLOR)
+		modlog_embed.add_field(name='Reason', value=reason, inline=False)
+		modlog_embed.add_field(name='Link', value=f'[Jump]({ctx.message.jump_url})', inline=False)
+		modlog_embed.add_field(name='Case number', value=case)
+
+		await self.modlog_channel.send(embed=modlog_embed)
+
+	@commands.command()
+	@has_permissions(manage_messages=True)
+	async def purge(self, ctx, limit: int, members: commands.Greedy[MemberConverter]=None, *, reason='Reason not provided'):
+		history = (await ctx.channel.history().flatten())[1:]
+		count = 0
+		file_name = f'purge_{"".join(random.choices(string.ascii_letters, k=8))}.txt'
+		with open(file_name, 'a') as file:
+			for message in history:
+				if message.author in members:
+					file.write(f'[{message.author}] ({message.author.id}) >>> {message.content}' + '\n')
+					await message.delete()
+					count += 1
+					if count == limit:
+						break
+		await ctx.message.delete()
+		file = discord.File(fp=file_name)
+
+		modlog_embed = discord.Embed(title='Purge Command Issued', description=f'Moderator {ctx.author} purged messages', color=VALID_COLOR)
+		modlog_embed.add_field(name='Purged from channel', value=ctx.channel.mention, inline=False)
+		modlog_embed.add_field(name='Reason', value=reason, inline=False)
+		modlog_embed.add_field(name='Messages purged of', value=', '.join([member.mention for member in members]) if members != None else 'All', inline=False)
+		modlog_embed.add_field(name='Number of messages purged:', value=limit)
+
+		await self.modlog_channel.send(embed=modlog_embed, file=file)
+
+	@commands.command()
+	@has_permissions(manage_channels=True)
+	async def reason(self, ctx, case_number: int, *, reason):
+		with open(DATABASE, 'r') as f:
+			text = json.load(f)
+		text['cases'][case_number-1]['reason'] = reason
+		with open(DATABASE, 'w') as f:
+			json.dump(text, f, indent=4)
+
+		embed = discord.Embed(title='Warn Reason Changed', color=VALID_COLOR)
+		embed.add_field(name='New Reason', value=reason)
+		await ctx.send(embed=embed)
+
+	@commands.command()
+	@has_permissions(manage_channels=True)
+	async def kick(self, ctx, target: MemberConverter, *, reason='Reason not provided'):
+		if target.guild_permissions.manage_messages:
+			embed = discord.Embed(title='Invalid!', description='You can\'t your fellow mod!', color=INVALID_COLOR)
+			await ctx.send(embed=embed)
+			return
+
+		case = punish(target.id, Punishment(ctx, reason, target, ctx.message.jump_url, 'kick'))
+		embed = discord.Embed(title='User has been kicked!', description=f'User {target} has been kicked!', color=VALID_COLOR)
+		await ctx.send(embed=embed)
+
+		modlog_embed = discord.Embed(title='Kick Command Issued', description=f'Moderator {ctx.author} kicked {target}', color=VALID_COLOR)
+		modlog_embed.add_field(reason=reason)
+
+		await self.modlog_channel.send(embed=modlog_embed)
+
+	@commands.command()
+	@has_permissions(manage_channels=True)
+	async def decancer(self, ctx, target: MemberConverter):
+		old, new = target.display_name, normalize(target.display_name)
+		await target.edit(nick=new)
+		embed = discord.Embed(title='Successfully decancered', description=f'User {target.mention}\'s name has been decancered.', color=VALID_COLOR)
+		embed.add_field(name='Old', value=old)
+		embed.add_field(name='New', value=new)
+
+		await ctx.send(embed=embed)
+
 
 def setup(client):
 	client.add_cog(CommandSet2(client))
