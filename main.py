@@ -20,42 +20,42 @@ class FlagReason(commands.Converter):
 help_items = {
 	1: [
 		{
-			'name': 'Avatar', 
+			'name': '?avatar', 
 			'value': 'Gives the specified member\'s avatar.'
 		}, 
 		{
-			'name': 'Ban',
+			'name': '?ban',
 			'value': 'Ban\'s the specified member for the specified duration.'
 		},
 		{
-			'name': 'Channel Ban',
+			'name': '?cban',
 			'value': 'Channel bans the specified member from the specified channel (they are unable to send messages or view the channel).'
 		},
 		{
-			'name': 'Channel Unban',
+			'name': '?cunban',
 			'value': 'Channel unbans the specified member from the specified channel (they can send message and view the channel again).'
 		},
 		{
-			'name': 'DM',
+			'name': '?dm',
 			'value': 'DMs the specified member the specified text.'
 		},
 		{
-			'name': 'FAQ',
+			'name': '?faq [#]',
 			'value': 'Provides the answer to the FAQ question. Has 1 subcommand.'
 		}
 	],
 	2: [
 		{
-			'name': 'Lock',
+			'name': '?lock',
 			'value': 'Locks the specified channel (members can\'t send messages).'
 		},
 		{
-			'name': 'Unlock',
+			'name': '?unlock',
 			'value': 'Unlocks the specified channel (members can send messages again).'
 
 		},
 		{
-			'name': 'Modlogs',
+			'name': '?modlogs',
 			'value': ''
 		}
 	]
