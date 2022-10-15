@@ -6,46 +6,114 @@ import time
 from discord.ext import commands
 from discord.ui import View, Button
 
+class FlagReason(commands.Converter):
+	async def convert(self, ctx, arg):
+		split = arg.split()
+		flags, reason = [], []
+		for index, item in enumerate(split):
+			if not item.startswith('-'):
+				reason = split[index:]
+				return flags, ' '.join(reason)
+			flags.append(item[1:])
+		return flags, 'Reason not provided'
+
 help_items = {
-	1: ['this is not a command': 'this is not a description', 'this is a test': 'this is a test too'],
-	2: ['this is not a command 2': 'this is not a description 2', 'this is a test 2': 'this is a test too 2']
+	1: [
+		{
+			'name': 'Avatar', 
+			'value': 'Gives the specified member\'s avatar.'
+		}, 
+		{
+			'name': 'Ban',
+			'value': 'Ban\'s the specified member for the specified duration.'
+		},
+		{
+			'name': 'Channel Ban',
+			'value': 'Channel bans the specified member from the specified channel (they are unable to send messages or view the channel).'
+		},
+		{
+			'name': 'Channel Unban',
+			'value': 'Channel unbans the specified member from the specified channel (they can send message and view the channel again).'
+		},
+		{
+			'name': 'DM',
+			'value': 'DMs the specified member the specified text.'
+		},
+		{
+			'name': 'FAQ',
+			'value': 'Provides the answer to the FAQ question. Has 1 subcommand.'
+		}
+	],
+	2: [
+		{
+			'name': 'Lock',
+			'value': 'Locks the specified channel (members can\'t send messages).'
+		},
+		{
+			'name': 'Unlock',
+			'value': 'Unlocks the specified channel (members can send messages again).'
+
+		},
+		{
+			'name': 'Modlogs',
+			'value': ''
+		}
+	]
 }
 
 class HelpView(View):
+	def __init__(self):
+		self.page = 1
+		super().__init__()
+
 	@discord.ui.button(label='Previous', emoji='⬅️', style=discord.ButtonStyle.blurple)
 	async def previous(self, button, interaction):
-		return 
+		self.page -= 1
+		await interaction.response.edit_message(embed=HelpEmbed(self.page), view=self.update_buttons())
+
+	@discord.ui.button(label='Next', emoji='➡️', style=discord.ButtonStyle.blurple)
+	async def next(self, button, interaction):
+		self.page += 1
+		await interaction.response.edit_message(embed=HelpEmbed(self.page), view=self.update_buttons())
+
+	def update_buttons(self):
+		buttons = self.children
+		_prev, _next = buttons
+
+		_prev.disabled = self.page == 1
+		_next.disabled = self.page == len(help_items)
+		return self
 
 class HelpEmbed(discord.Embed):
 	def __init__(self, page: int):
 		title = f'Help - Page number {page}'
-		super().__init__(title=title)
+		super().__init__(title=title, color=config.VALID_COLOR)
 		for command in help_items[page]:
-			
+			self.add_field(name=command['name'], value='⮩ ' + command['value'], inline=False)
 
 
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix=commands.when_mentioned_or('>'), intents=intents)
+bot = commands.Bot(command_prefix=commands.when_mentioned_or('?'), intents=intents)
 bot.remove_command('help')
 
 @bot.group(invoke_without_command=True)
 async def help(ctx):
-
-
-	await ctx.send()
+	await ctx.send(embed=HelpEmbed(1), view=HelpView().update_buttons())
 
 def is_convertible(arg):
-	return int(arg[:-1]) * {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}[arg[-1]] if arg[-1] in 'smhd' else False
+	return int(arg[:-1]) * {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}[arg[-1]] if arg[-1] in 'smhd' and not arg.startswith('-') else False
 
 class Duration(commands.Converter):
 	async def convert(self, ctx, arg):
-		time_converter = {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}
-		return (arg, int(arg[:-1]) * time_converter[arg[-1]]) # returns the exact text passed (eg: 1m, 2h) and that time in seconds
+		if is_convertible(arg):
+			time_converter = {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}
+			return (arg, int(arg[:-1]) * time_converter[arg[-1]])  # returns the exact text passed (eg: 1m, 2h) and that time in seconds
+		return None
 
 def load_cogs():
-	for file in os.listdir('cogs'): # runs through every file in the cogs directory
+	for file in os.listdir('cogs'):  # runs through every file in the cogs directory
 		if file.endswith('.py'):
-			bot.load_extension(f'cogs.{file[:-3]}') # loads every python file
+			bot.load_extension(f'cogs.{file[:-3]}')  # loads every python file
 			print(f'Loaded {file}')
 
 def fetch_user_data(user_id):
@@ -139,6 +207,20 @@ class Punishment(PunishmentMaster):
 		if data.get('duration') is not None:
 			base.duration = data['duration']
 		return base
+
+class PunishmentFromMessage(Punishment):
+	def from_message(self, message, reason, inflicted_on, link, infraction):
+		self.issued_on = round(time.time())
+		self.responsible_mod = message.author.id
+		self.reason = reason
+		self.inflicted_on = inflicted_on.id
+		self.link = link
+		self.infraction = infraction
+		with open(config.DATABASE, 'r') as f:
+			text = json.load(f)
+
+		self.case_number = text['case_count']
+
 
 @bot.event
 async def on_ready():

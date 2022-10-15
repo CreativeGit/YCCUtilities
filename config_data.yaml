@@ -2,14 +2,22 @@ token: MTAxODIwOTI3MTMxMTI1NzYxMg.GBkWBc.3QbGwj2UbeYVw3-9fCKYD7p1nLM7ykPRiDtTfA
 database: database.json
 faq: faq.json
 persist: persist.json
+halloween: kills.json
+trivia: trivia.json
+qna: qna.json
 valid_color: 0x4287f5
 invalid_color: 0xeb4034
 modlogs_channel: 1019215901284900974
 lock_bypass: 1019557597898080256
 suggestions: 1019570953346371655
 suggestion_bl: 1019571036875931709
+summon_channel: 1018089041561919578
 names:
   - hi
   - bye
   - pog
 color_role: 1019933300653035540
+sub_roles:
+  - 1022057758532575242 # top role
+  - 1022057795916402718
+  - 1022057818284642354 # bottom role
