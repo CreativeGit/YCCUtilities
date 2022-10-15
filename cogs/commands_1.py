@@ -6,10 +6,12 @@ from discord.ext.commands import MemberConverter
 from config import VALID_COLOR, INVALID_COLOR, FAQ, MODLOGS, LOCK_BYPASS, DATABASE
 from main import Duration, Punishment, is_convertible
 from main import punish, fetch_user_data as fud, set_note
+from main import FlagReason
 import time
 import asyncio
 import datetime
 import json
+import typing
 
 class CommandSet1(commands.Cog):
 	def __init__(self, client):
@@ -22,7 +24,7 @@ class CommandSet1(commands.Cog):
 
 	@commands.command(aliases=['cb', 'channelban'])
 	@has_permissions(ban_members=True) # the user must have ban member permissions to run this command
-	async def channel_ban(self, ctx, member: MemberConverter, channel: discord.TextChannel, duration: Duration = ('1h', 3600), *, reason='Reason not provided'):
+	async def channel_ban(self, ctx, member: MemberConverter, channel: discord.TextChannel, duration: typing.Optional[Duration], *, reason='Reason not provided'):
 		if member.guild_permissions.manage_messages:
 			embed = discord.Embed(title='Invalid!', description='You can\'t channel-ban a fellow mod!', color=INVALID_COLOR)
 			await ctx.send(embed=embed)
@@ -42,7 +44,7 @@ class CommandSet1(commands.Cog):
 		modlog_embed = discord.Embed(title='Channel Ban Command Issued', description=f'Moderator {ctx.author} channel-banned {member}.', color=VALID_COLOR)
 		modlog_embed.add_field(name='Reason', value=reason, inline=False)
 		modlog_embed.add_field(name='Duration', value=duration[0], inline=False)
-		modlog_embed.add_field(name='Link', value=f'[Jump][{ctx.message.jump_url}]', inline=False)
+		modlog_embed.add_field(name='Link', value=f'[Jump]({ctx.message.jump_url})', inline=False)
 		modlog_embed.add_field(name='Channel Banned from', value=channel.mention, inline=False)
 		modlog_embed.add_field(name='Case number', value=case)
 
@@ -62,7 +64,7 @@ class CommandSet1(commands.Cog):
 
 	@commands.command(aliases=['cub', 'channelunban'])
 	@has_permissions(ban_members=True) # the user must be able to ban users to be able to unban users.
-	async def channel_unban(self, ctx, member: MemberConverter, channel: discord.TextChannel, *, reason=None):
+	async def channel_unban(self, ctx, member: MemberConverter, channel: discord.TextChannel, *, reason='Reason not provided'):
 		await channel.set_permissions(member, overwrite=discord.PermissionOverwrite(send_messages=True, view_channel=True), reason=reason) # updates the user's permissions such that they can view the channel.
 		embed = discord.Embed(description='User has been unbanned from this channel.', color=VALID_COLOR)
 		embed.set_author(icon_url=member.avatar.url, name=f'User {member} Channel-Unbanned.')
@@ -70,7 +72,7 @@ class CommandSet1(commands.Cog):
 
 		modlog_embed = discord.Embed(title='Channel Unban Command Issued', description=f'Moderator {ctx.author} channel-unbanned {member}.', color=VALID_COLOR)
 		modlog_embed.add_field(name='Reason', value=reason, inline=False)
-		modlog_embed.add_field(name='Link', value=f'[Jump][{ctx.message.jump_url}]', inline=False)
+		modlog_embed.add_field(name='Link', value=f'[Jump]({ctx.message.jump_url})', inline=False)
 		modlog_embed.add_field(name='Channel Unbanned from', value=channel.mention, inline=False)
 
 		await self.modlog_channel.send(embed=modlog_embed)
@@ -145,31 +147,28 @@ class CommandSet1(commands.Cog):
 
 	@commands.command()
 	@has_permissions(ban_members=True)
-	async def ban(self, ctx, target: MemberConverter, *, rest=None):
-		if rest:
-			items = rest.split(' ')
-			if is_convertible(items[0]):
-				duration = is_convertible(items[0])
-			if len(items) >= 1:
-				reason = ' '.join(items[1:])
-		else:
-			duration = 'Indefinitely'
-			reason = 'Reason not provided'
+	async def ban(self, ctx, target: MemberConverter, duration: typing.Optional[Duration] = 'Indefinitely', *, flag_reason: FlagReason):
+		flags, reason = flag_reason
+		print(flags, reason)
 
 		case = punish(target.id, Punishment(ctx, reason, target, ctx.message.jump_url, 'ban', duration))
 		uid = target.id
 
-		modlog_embed = discord.Embed(title='Ban Command Issued', description=f'Moderator {ctx.author} banned {member}.', color=VALID_COLOR)
+		modlog_embed = discord.Embed(title='Ban Command Issued', description=f'Moderator {ctx.author} banned {target}.', color=VALID_COLOR)
 		modlog_embed.add_field(name='Reason', value=reason, inline=False)
 		modlog_embed.add_field(name='Duration', value=duration, inline=False)
-		modlog_embed.add_field(name='Link', value=f'[Jump][{ctx.message.jump_url}]', inline=False)
+		modlog_embed.add_field(name='Link', value=f'[Jump]({ctx.message.jump_url})', inline=False)
 		modlog_embed.add_field(name='Case number', value=case)
 
 		message = await self.modlog_channel.send(embed=modlog_embed)
 
+		if 's' not in flags:
+			embed = discord.Embed(title='You have been banned!', description=f'You have been banned from {ctx.guild.name}!', color=VALID_COLOR)
+			embed.add_field(name='Reason', value=reason)
+			await target.send(embed=embed)
 		await target.send('Here\'s your appeal link: https://discord.gg/Hp5jwY9Vxd')
 		await ctx.guild.ban(target, reason=reason)
-		embed = discord.Embed(title='User has been banned.', description=f'User {uid} has been banned ({f"Until <t:{round(time.time()) + duration}:F> (<t:{round(time.time() + duration)}:R>)"})', color=VALID_COLOR)
+		embed = discord.Embed(title='User has been banned.', description=f'User {uid} has been banned ' + (f'({f"Until <t:{round(time.time()) + duration}:F> (<t:{round(time.time() + duration)}:R>)"})' if isinstance(duration, (int, float)) else 'Indefinitely') , color=VALID_COLOR)
 		await ctx.send(embed=embed)
 
 		if isinstance(duration, int):
@@ -192,9 +191,7 @@ class CommandSet1(commands.Cog):
 			embed = discord.Embed(title='User has been unbanned.', description=f'User {user.mention} has been unbanned.', color=VALID_COLOR)
 
 			modlog_embed = discord.Embed(title='Unban Command Issued', description=f'Moderator {ctx.author} unbanned {user.mention}.', color=VALID_COLOR)
-			modlog_embed.add_field(name='Reason', value=reason, inline=False)
-			modlog_embed.add_field(name='Duration', value=duration, inline=False)
-			modlog_embed.add_field(name='Link', value=f'[Jump][{ctx.message.jump_url}]', inline=False)
+			modlog_embed.add_field(name='Link', value=f'[Jump]({ctx.message.jump_url})', inline=False)
 
 			await self.modlog_channel.send(embed=modlog_embed)			
 		else:
@@ -230,18 +227,24 @@ class CommandSet1(commands.Cog):
 
 	@commands.command()
 	@has_permissions(moderate_members=True)
-	async def mute(self, ctx, user: MemberConverter, duration: Duration, *, reason='Reason not provided'):
+	async def mute(self, ctx, user: MemberConverter, duration: typing.Optional[Duration] = 'Indefinitely', *, flg_reasons: FlagReason):
+		flags, reason = flg_reasons
 		case = punish(user.id, Punishment(ctx, reason, user, ctx.message.jump_url, 'mute', duration[1]))
 
 		modlog_embed = discord.Embed(title='Mute Command Issued', description=f'Moderator {ctx.author} muted {member}.', color=VALID_COLOR)
 		modlog_embed.add_field(name='Reason', value=reason, inline=False)
-		modlog_embed.add_field(name='Duration', value=duration[0], inline=False)
-		modlog_embed.add_field(name='Link', value=f'[Jump][{ctx.message.jump_url}]', inline=False)
+		modlog_embed.add_field(name='Duration', value=duration[0] if isinstance(duration, tuple) else duration, inline=False)
+		modlog_embed.add_field(name='Link', value=f'[Jump]({ctx.message.jump_url})', inline=False)
 		modlog_embed.add_field(name='Case number', value=case)
 
 		await self.modlog_channel.send(embed=modlog_embed)
 
 		await user.timeout_for(datetime.timedelta(seconds=duration[1]))
+		if 's' not in flags:
+			embed = discord.Embed(title='You have been muted!', description=f'You have been muted in {ctx.guild.name}!', color=VALID_COLOR)
+			embed.add_field(name='Reason', value=reason)
+			await user.send(embed=embed)
+
 		embed = discord.Embed(title='User has been timed out.', description=f'User {user.mention} has been timed out by {ctx.author.mention}.', color=VALID_COLOR)
 		await ctx.send(embed=embed)
 

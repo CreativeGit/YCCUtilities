@@ -6,20 +6,22 @@ from discord.ext.commands import has_permissions, has_role
 from discord.ext.commands import MemberConverter, RoleConverter
 from config import PERSIST, VALID_COLOR, INVALID_COLOR
 from config import SUGGESTIONS_CHANNEL, SUGGESTIONS_BL, NAMES
-from config import COLOR_ROLE, MODLOGS, DATABASE
-from main import Duration, Punishment
+from config import COLOR_ROLE, MODLOGS, DATABASE, SUB_ROLES
+from main import Duration, Punishment, PunishmentFromMessage
 from main import fetch_user_data as fud, punish
+from main import FlagReason
 import json
 import random
 from datetime import timedelta, datetime, timezone
 import re
 import string
 from normalize import normalize
+import os
+import typing
 
 class LinkMod:
 	def __init__(self, restrictions):
 		self.restrictions = restrictions
-
 
 suggestions = []
 id_link = {1019933300653035540: 1, 1019571036875931709: LinkMod(['youtube'])}
@@ -187,7 +189,7 @@ class CommandSet2(commands.Cog):
 		await ctx.send(f"{ctx.author.mention}! Your alarm is ringing! :alarm_clock:")
 
 	@commands.command(aliases=['ui'])
-	async def userinfo(self, ctx, target: MemberConverter = None):
+	async def userinfo(self, ctx, target: typing.Optional[MemberConverter]):
 		target = target or ctx.author
 
 		print(target.public_flags.all())
@@ -200,7 +202,7 @@ class CommandSet2(commands.Cog):
 
 	@commands.Cog.listener()
 	async def on_message(self, message):
-		if message.author.bot:
+		if message.author.bot or message.author.guild_permissions.manage_messages:
 			return
 		content = message.content
 		if 'https://' in content or 'http://' in content:
@@ -221,14 +223,24 @@ class CommandSet2(commands.Cog):
 				return
 			await message.delete()
 
+		if len(message.mentions) >= 5:
+			punish(message.author.id, PunishmentFromMessage(message, 'Mass mention', message.author, message.jump_url, 'ban'))
+			await message.delete()
+
 	@commands.command()
 	@has_permissions(manage_channels=True)
-	async def warn(self, ctx, member: MemberConverter, *, reason='Reason not provided'):
+	async def warn(self, ctx, member: MemberConverter, *, flg_reason: FlagReason):
+		flags, reason = flg_reason
 		log_data = Punishment(ctx, reason, member, ctx.message.jump_url, 'warn')
 		case = punish(member.id, log_data)
 
 		embed = discord.Embed(title='User has been warned.', description=f'Reason: **{reason}**', color=VALID_COLOR)
 		await ctx.send(embed=embed)
+
+		if 's' not in flags:
+			embed = discord.Embed(title='You have been warned!', description=f'You have been warned!', color=VALID_COLOR)
+			embed.add_field(name='Reason', value=reason)
+			await member.send(embed=embed)
 
 		modlog_embed = discord.Embed(title='Warn Command Issued', description=f'Moderator {ctx.author} warned {member}.', color=VALID_COLOR)
 		modlog_embed.add_field(name='Reason', value=reason, inline=False)
@@ -237,16 +249,22 @@ class CommandSet2(commands.Cog):
 
 		await self.modlog_channel.send(embed=modlog_embed)
 
-	@commands.command()
+	@commands.group(invoke_without_command=True)
 	@has_permissions(manage_messages=True)
-	async def purge(self, ctx, limit: int, members: commands.Greedy[MemberConverter]=None, *, reason='Reason not provided'):
+	async def purge(self, ctx, limit: typing.Optional[int] = 100, mem_roles: commands.Greedy[typing.Union[MemberConverter, RoleConverter]]=(), *, reason='Reason not provided'):
+		ids = [mem_role.id for mem_role in mem_roles]
 		history = (await ctx.channel.history().flatten())[1:]
 		count = 0
 		file_name = f'purge_{"".join(random.choices(string.ascii_letters, k=8))}.txt'
 		with open(file_name, 'a') as file:
 			for message in history:
-				if message.author in members:
-					file.write(f'[{message.author}] ({message.author.id}) >>> {message.content}' + '\n')
+				roles = [role.id for role in message.author.roles]
+				if mem_roles == () or message.author.id in ids or any(rid in roles for rid in ids):
+					try:
+						file.write(f'[{message.author}] ({message.author.id}) >>> {message.content}' + '\n')
+					except UnicodeEncodeError:
+						file.write(f'[{message.author}] ({message.author.id}) >>> (invalid characters)')
+
 					await message.delete()
 					count += 1
 					if count == limit:
@@ -257,10 +275,39 @@ class CommandSet2(commands.Cog):
 		modlog_embed = discord.Embed(title='Purge Command Issued', description=f'Moderator {ctx.author} purged messages', color=VALID_COLOR)
 		modlog_embed.add_field(name='Purged from channel', value=ctx.channel.mention, inline=False)
 		modlog_embed.add_field(name='Reason', value=reason, inline=False)
-		modlog_embed.add_field(name='Messages purged of', value=', '.join([member.mention for member in members]) if members != None else 'All', inline=False)
+		modlog_embed.add_field(name='Messages purged of', value=', '.join([member.mention for member in mem_roles]) if mem_roles != () else 'All', inline=False)
 		modlog_embed.add_field(name='Number of messages purged:', value=limit)
 
 		await self.modlog_channel.send(embed=modlog_embed, file=file)
+
+		os.remove(f'./{file_name}')
+
+	@purge.command()
+	async def match(self, ctx, limit: int, *, text: str):
+		del_all = text.endswith('-o')
+		text = text if not del_all else text[:-3]
+		to_delete = []
+		for message in (await ctx.channel.history().flatten())[1:]:
+			if len(to_delete) == limit:
+				break
+
+			if ((not del_all) and text.lower() in message.content.lower()) or (del_all and text.lower() == message.content.lower()):
+				to_delete.append(message)
+
+		file_name = f'purge_{"".join(random.choices(string.ascii_letters, k=8))}.txt'
+		with open(file_name, 'w') as f:
+			f.write('\n'.join(f'[{msg.author}] ({msg.author.id}) >>> {msg.content}' for msg in to_delete))
+
+		await ctx.channel.delete_messages(to_delete)
+		modlogs = discord.Embed(title=f'Messages deleted', description=f'Messages deleted in {ctx.channel.mention}', color=VALID_COLOR)
+		modlogs.add_field(name='Messages deleted', value=str(len(to_delete)), inline=False)
+		modlogs.add_field(name='Text matching', value=text, inline=False)
+		modlogs.add_field(name='Delete containing?', value=['Yes', 'No'][del_all], inline=False)
+		modlogs.add_field(name='Issued by', value=ctx.message.author)
+
+		await self.modlog_channel.send(embed=modlogs, file=discord.File(file_name))
+		await ctx.message.delete()
+		os.remove(f'./{file_name}')
 
 	@commands.command()
 	@has_permissions(manage_channels=True)
@@ -277,18 +324,25 @@ class CommandSet2(commands.Cog):
 
 	@commands.command()
 	@has_permissions(manage_channels=True)
-	async def kick(self, ctx, target: MemberConverter, *, reason='Reason not provided'):
+	async def kick(self, ctx, target: MemberConverter, *, flg_reason: FlagReason):
+		flags, reason = flg_reason
 		if target.guild_permissions.manage_messages:
 			embed = discord.Embed(title='Invalid!', description='You can\'t your fellow mod!', color=INVALID_COLOR)
 			await ctx.send(embed=embed)
 			return
 
-		case = punish(target.id, Punishment(ctx, reason, target, ctx.message.jump_url, 'kick'))
+		punish(target.id, Punishment(ctx, reason, target, ctx.message.jump_url, 'kick'))
 		embed = discord.Embed(title='User has been kicked!', description=f'User {target} has been kicked!', color=VALID_COLOR)
 		await ctx.send(embed=embed)
 
+		if 's' not in flags:
+			embed = discord.Embed(title='You have been kicked!', description=f'You have been kicked from {ctx.guild.name}!', color=VALID_COLOR)
+			embed.add_field(name='Reason', value=reason)
+			await target.send(embed=embed)
+		await target.kick()
+
 		modlog_embed = discord.Embed(title='Kick Command Issued', description=f'Moderator {ctx.author} kicked {target}', color=VALID_COLOR)
-		modlog_embed.add_field(reason=reason)
+		modlog_embed.add_field(name="Reason", value=reason)
 
 		await self.modlog_channel.send(embed=modlog_embed)
 
@@ -302,6 +356,41 @@ class CommandSet2(commands.Cog):
 		embed.add_field(name='New', value=new)
 
 		await ctx.send(embed=embed)
+
+	@commands.command()
+	@has_permissions(manage_messages=True)
+	async def softban(self, ctx, member: MemberConverter, *, reason: str = 'Reason not provided'):
+		contents = []
+		for channel in ctx.guild.text_channels:
+			async for message in channel.history():
+				if message.author.id == member.id:
+					contents.append(f'[in {message.channel}]: {message.content}')
+					await message.delete()
+
+		file_name = f'softban_{"".join(random.choices(string.ascii_letters, k=8))}.txt'
+		with open(file_name, 'w') as f:
+			f.write('\n'.join(contents))
+
+		punish(member.id, Punishment(ctx, reason, member, ctx.message.jump_url, 'softban'))
+
+		modlogs = discord.Embed(title='Softban command invoked', description=f'User {member.mention} has been softbanned', color=VALID_COLOR)
+		modlogs.add_field(name='Reason', value=reason, inline=False)
+
+		await self.modlog_channel.send(embed=modlogs, file=discord.File(file_name))
+		await member.kick()
+		os.remove(file_name)
+
+	@commands.Cog.listener()
+	async def on_member_update(self, old, new):
+		o_roles, n_roles = old.roles, new.roles
+		n_rids = [r.id for r in n_roles if r.id in SUB_ROLES]
+		if n_rids:
+			if len(n_roles) > len(o_roles):
+				for item in n_roles:
+					if item not in o_roles:
+						break
+				to_remove = sorted(n_rids, key=lambda i: SUB_ROLES.index(i))[1:]
+				await new.remove_roles(*[r for r in n_roles if r.id in to_remove])
 
 
 def setup(client):
