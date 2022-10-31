@@ -20,42 +20,42 @@ class FlagReason(commands.Converter):
 help_items = {
 	1: [
 		{
-			'name': '?avatar', 
+			'name': 'Avatar', 
 			'value': 'Gives the specified member\'s avatar.'
 		}, 
 		{
-			'name': '?ban',
+			'name': 'Ban',
 			'value': 'Ban\'s the specified member for the specified duration.'
 		},
 		{
-			'name': '?cban',
+			'name': 'Channel Ban',
 			'value': 'Channel bans the specified member from the specified channel (they are unable to send messages or view the channel).'
 		},
 		{
-			'name': '?cunban',
+			'name': 'Channel Unban',
 			'value': 'Channel unbans the specified member from the specified channel (they can send message and view the channel again).'
 		},
 		{
-			'name': '?dm',
+			'name': 'DM',
 			'value': 'DMs the specified member the specified text.'
 		},
 		{
-			'name': '?faq [#]',
+			'name': 'FAQ',
 			'value': 'Provides the answer to the FAQ question. Has 1 subcommand.'
 		}
 	],
 	2: [
 		{
-			'name': '?lock',
+			'name': 'Lock',
 			'value': 'Locks the specified channel (members can\'t send messages).'
 		},
 		{
-			'name': '?unlock',
+			'name': 'Unlock',
 			'value': 'Unlocks the specified channel (members can send messages again).'
 
 		},
 		{
-			'name': '?modlogs',
+			'name': 'Modlogs',
 			'value': ''
 		}
 	]
@@ -66,13 +66,13 @@ class HelpView(View):
 		self.page = 1
 		super().__init__()
 
-	@discord.ui.button(label='Previous', emoji='⬅️', style=discord.ButtonStyle.blurple)
-	async def previous(self, button, interaction):
+	@discord.ui.button(label='Previous', emoji='⬅', style=discord.ButtonStyle.blurple)
+	async def previous(self, _, interaction):
 		self.page -= 1
 		await interaction.response.edit_message(embed=HelpEmbed(self.page), view=self.update_buttons())
 
-	@discord.ui.button(label='Next', emoji='➡️', style=discord.ButtonStyle.blurple)
-	async def next(self, button, interaction):
+	@discord.ui.button(label='Next', emoji='➡', style=discord.ButtonStyle.blurple)
+	async def next(self, _, interaction):
 		self.page += 1
 		await interaction.response.edit_message(embed=HelpEmbed(self.page), view=self.update_buttons())
 
@@ -96,18 +96,20 @@ intents = discord.Intents.all()
 bot = commands.Bot(command_prefix=commands.when_mentioned_or('?'), intents=intents)
 bot.remove_command('help')
 
-@bot.group(invoke_without_command=True)
-async def help(ctx):
+"""
+@bot.group(invoke_without_command=True, name='help')
+async def help_cmd(ctx):
 	await ctx.send(embed=HelpEmbed(1), view=HelpView().update_buttons())
+""" # ^^^ Removes the incomplete help method
 
 def is_convertible(arg):
-	return int(arg[:-1]) * {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}[arg[-1]] if arg[-1] in 'smhd' and not arg.startswith('-') else False
+	return int(arg[:-1]) * {'s': 1, 'm': 60, 'h': 3600, 'd': 86400, 'y': 31557600}[arg[-1]] if arg[-1] in 'smhdy' and not arg.startswith('-') else False
 
 class Duration(commands.Converter):
 	async def convert(self, ctx, arg):
 		if is_convertible(arg):
 			time_converter = {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}
-			return (arg, int(arg[:-1]) * time_converter[arg[-1]])  # returns the exact text passed (eg: 1m, 2h) and that time in seconds
+			return arg, int(arg[:-1]) * time_converter[arg[-1]]  # returns the exact text passed (eg: 1m, 2h) and that time in seconds
 		return None
 
 def load_cogs():
@@ -134,7 +136,7 @@ def fetch_user_data(user_id):
 def punish(user_id, punishment):
 	with open(config.DATABASE, 'r') as f:
 		text = json.load(f)
-	if text['users'].get(str(user_id)) is None: # if the user doesn't have any past data.
+	if text['users'].get(str(user_id)) is None:  # if the user doesn't have any past data.
 		text['users'][str(user_id)] = {
 			'violations': [],
 			'note': 'Nothing special.'
@@ -153,7 +155,7 @@ def punish(user_id, punishment):
 def set_note(user_id, note):
 	with open(config.DATABASE, 'r') as f:
 		text = json.load(f)
-	if text['users'].get(str(user_id)) is None: # if the user doesn't have any past data.
+	if text['users'].get(str(user_id)) is None:  # if the user doesn't have any past data.
 		text['users'][str(user_id)] = {
 			'violations': [],
 			'note': 'Nothing special.'
@@ -191,7 +193,7 @@ class Punishment(PunishmentMaster):
 		return vars(self)
 
 	@classmethod
-	def empty(self):
+	def empty(cls):
 		return PunishmentMaster()
 
 	@classmethod
@@ -222,8 +224,15 @@ class PunishmentFromMessage(Punishment):
 		self.case_number = text['case_count']
 
 
+@bot.command(name='uc')
+async def unload_cogs(ctx, *cogs):
+	for cog in cogs:
+		bot.unload_extension(f'cogs.{cog}')
+	await ctx.send("The cogs have been unloaded, and their commands will not be able to be run.")
+
 @bot.event
 async def on_ready():
+	await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name='discord.gg/youtubers'))
 	print(f'{bot.user} is up and ready to go!')
 
 
