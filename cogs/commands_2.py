@@ -15,7 +15,7 @@ import random
 from datetime import timedelta, datetime, timezone
 import re
 import string
-from normalize import normalize
+import normalize
 import os
 import typing
 
