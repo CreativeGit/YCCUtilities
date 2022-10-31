@@ -1,0 +1,22 @@
+Before adding the bot, do this:
+1. Create the following files in the same directory as the main.py script:
+  database.json
+  faq.json
+  persist.json
+  kills.json
+  trivia.json
+  qna.json (uploaded)
+  
+  Please make sure that to write {} in all the above files except qna.json
+
+2. Change the following channel/role ids in the config.yaml file:
+  modlogs_channel: channel id
+  lock_bypass: role id
+  suggestions: channel id
+  suggestion_bl: role id
+  summon_channel: channel id
+  trivia_channel: channel id
+  color_role: role id
+ 
+3. After startup run the command '?uc commands_5' to remove the buggy extension.
+
