@@ -5,10 +5,10 @@ import random
 import discord
 from discord.ext import commands
 from discord.ext import tasks
-from config import SUMMON_CHANNEL, TRIVIA, QNA
+from config import TRIVIA, QNA, TRIVIA_CHANNEL
 
 def fetch_qna():
-    with open(QNA, 'r') as f: return json.load(f)
+    with open(QNA, 'r', encoding='utf-8') as f: return json.load(f)
 
 def append_qna(q, a):
     data = fetch_qna()
@@ -46,6 +46,7 @@ class CommandSet4(commands.Cog):
         self.questions, self.answers = self.fetch_data['questions'], self.fetch_data['answers']
 
         self.qna = dict(zip(self.questions, self.answers))
+        self.summon_channel = None
 
     def refresh(self):
         self.fetch_data = fetch_qna()
@@ -53,7 +54,7 @@ class CommandSet4(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        self.summon_channel = await self.client.fetch_channel(SUMMON_CHANNEL)
+        self.summon_channel = await self.client.fetch_channel(TRIVIA_CHANNEL)
 
     @commands.command(aliases=['st'])
     @commands.has_permissions(manage_channels=True)
@@ -74,7 +75,7 @@ class CommandSet4(commands.Cog):
             embed = discord.Embed(title=f'Question #{index}', description=self.questions[i], color=self.color)
             await self.summon_channel.send(embed=embed)
             try:
-                msg = await self.client.wait_for('message', check=lambda m: m.channel.id == SUMMON_CHANNEL and m.content.lower() == self.answers[i], timeout=10)
+                msg = await self.client.wait_for('message', check=lambda m: m.channel.id == SUMMON_CHANNEL and m.content.lower() in self.answers[i], timeout=10)
                 with open(TRIVIA, 'r') as f:
                     text = json.load(f)
                 if text.get(str(msg.author.id)):
@@ -93,6 +94,19 @@ class CommandSet4(commands.Cog):
 
         embed = discord.Embed(title='The game has ended!', description='GG to everyone who participated!', color=self.color)
         await self.summon_channel.send(embed=embed)
+
+    @start_game.before_loop
+    async def before_game(self):
+        await self.summon_channel.set_permissions(channel.default_role, send_messages=True)
+        await self.summon_channel.send('The Trivia game will start in 5 minutes!')
+
+        await asyncio.sleep(300)
+
+    @start_game.after_loop
+    async def after_game(self):
+        await asyncio.sleep(300)
+        await self.summon_channel.send('The channel is now locked. It will once again unlock 5 minutes before the next trivia game.')
+        await self.summon_channel.set_permissions(channel.default_role, send_messages=False)
 
     @commands.command(aliases=['tlb'])
     async def trivialeaderboard(self, ctx):

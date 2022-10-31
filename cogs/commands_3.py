@@ -32,6 +32,8 @@ class CommandSet3(commands.Cog):
         self.color = 0xd17015
         self.client = client
         self.summon_data = {}
+        self.damage_dealt = defaultdict(lambda: 0)
+        self.summon_channel = None
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -75,18 +77,22 @@ class CommandSet3(commands.Cog):
         new = (curr[0] - amt, *curr[1:])
         self.summon_data[ctx.channel.id] = new
 
+        self.damage_dealt[ctx.author.id] += amt
+
         if new[0] <= 0:
             embed = discord.Embed(title='Vanquish me!', description='I have been vanquished!', color=self.color)
             embed.add_field(name='HP', value='Dead :dizzy_face:')
-            embed.set_image(url='attachment://image.png')
-
-            file = discord.File(fp=f'./drawings/{new[1]}.png', filename='image.png')
             data = self.summon_data.pop(ctx.channel.id)
 
             with open(KILLS, 'r') as f:
                 text = json.load(f)
 
-            if text.get(str(ctx.author.id)):
+            if str((max_dmg := max(self.damage_dealt, key=lambda uid: self.damage_dealt[uid]))) in text:
+                text[str(max_dmg)] += (2 * cr_mt[data[1]])
+            else:
+                text[str(max_dmg)] = 2 * cr_mt[data[1]]
+
+            if str(ctx.author.id) in text:
                 text[str(ctx.author.id)] += cr_mt[data[1]]
             else:
                 text[str(ctx.author.id)] = cr_mt[data[1]]
@@ -94,22 +100,19 @@ class CommandSet3(commands.Cog):
             with open(KILLS, 'w') as f:
                 json.dump(text, f, indent=4)
 
-            return embed, file
+            self.damage_dealt.clear()
+            return embed
         else:
             embed = discord.Embed(title='Vanquish me!', description='Boo! :ghost:', color=self.color)
             embed.add_field(name='HP', value=str(new[0]))
-            embed.set_image(url='attachment://image.png')
 
-            file = discord.File(fp=f'./drawings/{new[1]}.png', filename='image.png')
-
-            return embed, file
+            return embed
 
     async def summon_creature(self, creature: str):
         embed = discord.Embed(title='Vanquish me!', description='Boo! :ghost:', color=self.color)
         embed.add_field(name='HP', value=cr_mt[creature] * 100)
-        embed.set_image(url='attachment://image.png')
 
-        msg = await self.summon_channel.send(embed=embed, file=discord.File(fp=f'./drawings/{creature}.png', filename='image.png'))
+        msg = await self.summon_channel.send(embed=embed)
         self.summon_data[self.summon_channel.id] = (cr_mt[creature] * 100, creature, msg)
 
     @commands.command()
@@ -123,8 +126,8 @@ class CommandSet3(commands.Cog):
         if ctx.channel.id in self.summon_data:
             data = self.summon_data[ctx.channel.id]
 
-            em, file = self.deduct_hp(ctx, 100)
-            await data[2].edit(embed=em, file=file)
+            em = self.deduct_hp(ctx, 100)
+            await data[2].edit(embed=em)
             user_data[ctx.author.id]['sword'] -= 1
         else:
             embed = discord.Embed(title='Couldn\'t use sword!',
@@ -148,8 +151,8 @@ class CommandSet3(commands.Cog):
         if ctx.channel.id in self.summon_data:
             data = self.summon_data[ctx.channel.id]
 
-            em, file = self.deduct_hp(ctx, 50)
-            await data[2].edit(embed=em, file=file)
+            em = self.deduct_hp(ctx, 50)
+            await data[2].edit(embed=em)
             user_data[ctx.author.id]['staff'] -= 1
         else:
             embed = discord.Embed(title='Couldn\'t use staff!',
@@ -171,8 +174,8 @@ class CommandSet3(commands.Cog):
         if ctx.channel.id in self.summon_data:
             data = self.summon_data[ctx.channel.id]
 
-            em, file = self.deduct_hp(ctx, 25)
-            await data[2].edit(embed=em, file=file)
+            em = self.deduct_hp(ctx, 25)
+            await data[2].edit(embed=em)
             user_data[ctx.author.id]['penknife'] -= 1
         else:
             embed = discord.Embed(title='Couldn\'t use penknife!!',

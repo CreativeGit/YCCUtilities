@@ -122,6 +122,9 @@ class CommandSet1(commands.Cog):
 		if 'm' in filters:
 			mutes = [case[1] for case in user_cases if case[0] == 'mute']
 			embed.add_field(name='Mutes', value='\n\n'.join(mutes) or 'No data.', inline=False)
+		if 'sb' in filters:
+			softbans = [case[1] for case in user_cases if case[0] == 'softban']
+			embed.add_field(name='Softbans', value='\n\n'.join(softbans) or 'No data.', inline=False)
 
 		if filters in [['ms'], []]:
 			warns = [case[1] for case in user_cases if case[0] == 'warn']
@@ -129,11 +132,13 @@ class CommandSet1(commands.Cog):
 			kicks = [case[1] for case in user_cases if case[0] == 'kick']
 			cbans = [case[1] for case in user_cases if case[0] == 'cban']
 			mutes = [case[1] for case in user_cases if case[0] == 'mute']
+			softbans = [case[1] for case in user_cases if case[0] == 'mute']
 			embed.add_field(name='Warns', value='\n\n'.join(warns) or 'No data.', inline=False)
 			embed.add_field(name='Bans', value='\n\n'.join(bans) or 'No data.', inline=False)
 			embed.add_field(name='Kicks', value='\n\n'.join(kicks) or 'No data.', inline=False)
 			embed.add_field(name='Channel bans', value='\n\n'.join(cbans) or 'No data.', inline=False)
 			embed.add_field(name='Mutes', value='\n\n'.join(mutes) or 'No data.', inline=False)
+			embed.add_field(name='Softbans', value='\n\n'.join(softbans) or 'No data.', inline=False)
 
 		if show_mod:
 			embed.add_field(name='Notes', value=base_user_data['note'])

@@ -40,7 +40,7 @@ class SuggestionView(View):
 		self.case_number = len(suggestions)
 
 	@discord.ui.button(label='I agree!', emoji='👍', style=discord.ButtonStyle.green)
-	async def agreed(self, button, interaction):
+	async def agreed(self, _, interaction):
 		if interaction.user.id in self.interacted_users:
 			await interaction.response.send_message('You have already voted!', ephemeral=True)
 			return
@@ -48,7 +48,7 @@ class SuggestionView(View):
 		await interaction.response.edit_message(embed=self.em.edit(self.data))
 
 	@discord.ui.button(label='I disagree!', emoji='👎', style=discord.ButtonStyle.red)
-	async def disagreed(self, button, interaction):
+	async def disagreed(self, _, interaction):
 		if interaction.user.id in self.interacted_users:
 			await interaction.response.send_message('You have already voted!', ephemeral=True)
 			return
@@ -83,6 +83,7 @@ class SuggestionEmbed(discord.Embed):
 class CommandSet2(commands.Cog):
 	def __init__(self, client):
 		self.client = client
+		self.modlog_channel = None
 
 	@commands.Cog.listener()
 	async def on_ready(self):
@@ -175,8 +176,8 @@ class CommandSet2(commands.Cog):
 
 	@commands.command()
 	async def quote(self, ctx, link):
-		id = link.split('/')[-1]
-		msg = await ctx.fetch_message(int(id))
+		msg_id = link.split('/')[-1]
+		msg = await ctx.fetch_message(int(msg_id))
 		embed = discord.Embed(title=f'Message by {msg.author}', description=f'Message: {msg.content}', color=VALID_COLOR)
 
 		await ctx.send(embed=embed)
@@ -218,7 +219,7 @@ class CommandSet2(commands.Cog):
 			if restrictions == 2:
 				await message.delete()
 
-			link = re.search(r'http[s]?://.*(.*)', content).group(1)
+			link = re.search(r'https?://.*(.*)', content).group(1)
 			if link in restrictions:
 				return
 			await message.delete()
@@ -251,7 +252,7 @@ class CommandSet2(commands.Cog):
 
 	@commands.group(invoke_without_command=True)
 	@has_permissions(manage_messages=True)
-	async def purge(self, ctx, limit: typing.Optional[int] = 100, mem_roles: commands.Greedy[typing.Union[MemberConverter, RoleConverter]]=(), *, reason='Reason not provided'):
+	async def purge(self, ctx, limit: typing.Optional[int] = 100, mem_roles: commands.Greedy[typing.Union[MemberConverter, RoleConverter]] = (), *, reason='Reason not provided'):
 		ids = [mem_role.id for mem_role in mem_roles]
 		history = (await ctx.channel.history().flatten())[1:]
 		count = 0
