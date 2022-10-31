@@ -225,6 +225,7 @@ class PunishmentFromMessage(Punishment):
 
 
 @bot.command(name='uc')
+@commands.has_permissions(administrator=True)
 async def unload_cogs(ctx, *cogs):
 	for cog in cogs:
 		bot.unload_extension(f'cogs.{cog}')
