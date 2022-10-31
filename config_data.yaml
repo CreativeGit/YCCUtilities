@@ -7,18 +7,18 @@ trivia: trivia.json
 qna: qna.json
 valid_color: 0x4287f5
 invalid_color: 0xeb4034
-modlogs_channel: 1019215901284900974
-lock_bypass: 1019557597898080256
-suggestions: 1019570953346371655
-suggestion_bl: 1019571036875931709
-summon_channel: 1018089041561919578
-trivia_channel: 1018089041561919578
+modlogs_channel: 758177342731583508
+lock_bypass: 731966415011053600
+suggestions: 1014953983401525258
+suggestion_bl: 1036627691379634266
+summon_channel: 1014709650890969188
+trivia_channel: 1036628571231375370
 names:
   - hi
   - bye
   - pog
 color_role: 1019933300653035540
 sub_roles:
-  - 1022057758532575242 # top role
-  - 1022057795916402718
-  - 1022057818284642354 # bottom role
+  - 732379694804238376 # top role | does this mean 100 sub role
+  - 764363196302622742 # does this mean 50 sub role
+  - 764369275225899028 # bottom role | Does this mean the 10 sub role?
