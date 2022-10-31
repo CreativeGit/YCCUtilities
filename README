@@ -1,3 +1,4 @@
+# How-To 
 Before adding the bot, do this:
 1. Create the following files in the same directory as the main.py script:
   database.json
@@ -19,4 +20,11 @@ Before adding the bot, do this:
   color_role: role id
  
 3. After startup run the command '?uc commands_5' to remove the buggy extension.
+
+## Creative's Personal Guide
+- make changes locally (not on VPS), commit and push changes
+- open terminal → `ssh ubuntu@149.56.132.223`
+- `cd YCCUtilities/`
+- git pull
+- python3 main.py
 
