@@ -9,8 +9,8 @@ from discord.ext import tasks
 from config import INVALID_COLOR, KILLS, SUMMON_CHANNEL
 
 creatures = ['zombie', 'ghost', 'mummy', 'witch', 'vampire']
-descriptions = ['zombie lorem ipsum', 'ghost lorem ipsum', 'mummy lorem ipsum', 'witch lorem ipsum', 'vampire lorem ipsum']
-emojis = [':zombie:', ':ghost:', ':m:', ':regional_indicator_w:', ':vampire:']
+descriptions = ['Zombies are creatures that are a little commonplace, and spawn about every ten to fifteen minutes. They have 100 HP—the sword is your best choice; it cleanly beheads the zombie.', 'Ghosts can emerge from various nooks and crannies, and finding them is quite common. They also have 100 HP :crossed_swords:', 'Mummies are slightly rare; you don\'t see them too often. It takes a little more effort to kill them (they have 150HP), but gives you more rewards.', 'Witches are slightly less common, so you won\'t see them as much. However, they give you more points when killed!', 'Vampires are the rarest creature of them all; seldom will you find one lurking in the <#1014709650890969188> channel. When you do, bring a few friends and fight the monster together!']
+emojis = [':zombie:', ':ghost:', ':mummy:', ':witch:', ':vampire:']
 multipliers = [1, 1, 1.5, 1.5, 2]
 
 cr_mt = dict(zip(creatures, multipliers))
@@ -139,7 +139,7 @@ class CommandSet3(commands.Cog):
     async def sword_error(self, ctx, err):
         if isinstance(err, commands.CheckFailure):
             embed = discord.Embed(title='Sword usage failed',
-                                  description='You couldn\'t use the sword! You\'ve already used it in the past 24 hours!',
+                                  description='You couldn\'t use the sword! You\'ve already used it in the past 24 hours! Try another weapon.',
                                   color=INVALID_COLOR)
             await ctx.send(embed=embed)
         else:
@@ -164,7 +164,7 @@ class CommandSet3(commands.Cog):
     async def staff_error(self, ctx, err):
         if isinstance(err, commands.CheckFailure):
             embed = discord.Embed(title='Staff usage failed',
-                                  description='You couldn\'t use the staff! You\'ve already used it in the past 24 hours!',
+                                  description='You couldn\'t use the staff! You\'ve already used it in the past 24 hours! Try another weapon.',
                                   color=INVALID_COLOR)
             await ctx.send(embed=embed)
 
@@ -187,7 +187,7 @@ class CommandSet3(commands.Cog):
     async def penknife_error(self, ctx, err):
         if isinstance(err, commands.CheckFailure):
             embed = discord.Embed(title='Penknife usage failed',
-                                  description='You couldn\'t use the penknife! You\'ve already used it in the past 24 hours!',
+                                  description='You couldn\'t use the penknife! You\'ve already used it in the past 24 hours! Try another weapon.',
                                   color=INVALID_COLOR)
             await ctx.send(embed=embed)
 
@@ -196,7 +196,7 @@ class CommandSet3(commands.Cog):
         with open(KILLS, 'r') as f:
             text = json.load(f)
 
-        embed = discord.Embed(title='Your halloween kill score', color=self.color)
+        embed = discord.Embed(title='Halloween Kill Score :crossed_swords:', color=self.color)
         embed.add_field(name='Your score: ', value=str(text[str(ctx.author.id)]))
         embed.set_thumbnail(url=ctx.author.avatar.url)
         await ctx.send(embed=embed)
@@ -211,24 +211,24 @@ class CommandSet3(commands.Cog):
 
         jnt = [i[0] for i in r]
 
-        embed = discord.Embed(title='Kills leaderboard!', description='\n'.join(jnt), color=self.color)
+        embed = discord.Embed(title='Kills Leaderboard!', description='\n'.join(jnt), color=self.color)
         await ctx.send(embed=embed)
 
     @commands.command()
     async def listcreatures(self, ctx):
-        embed = discord.Embed(title='All creatures', color=self.color)
+        embed = discord.Embed(title='All Creatures', color=self.color)
         for cr, dc, ej in zip(creatures, descriptions, emojis):
             embed.add_field(name=f'{ej} {cr.capitalize()}', value=dc, inline=False)
         await ctx.send(embed=embed)
 
     @commands.command()
     async def halloweenhelp(self, ctx):
-        embed = discord.Embed(title='Welcome to Halloween!', description='Here are the halloween commands:', color=self.color)
-        embed.add_field(name=':sword: Sword', value='`>sword` Use your sword to kill monsters, deals 100 damage. Can be used once every 24 hours.', inline=False)
-        embed.add_field(name=':chopsticks: Staff', value='`>staff` Use your staff to kill monsters, deals 50 damage. Can be used twice every 24 hours.', inline=False)
-        embed.add_field(name=':dagger: Penknife', value='`>penknife` Use your penknife to kill monsters, deals 25 damage. Can be used 4 times every 24 hours.', inline=False)
-        embed.add_field(name='Leaderboard', value='`>lb` or `>leaderboard` Shows the players with the most points, obtained from killing monsters.', inline=False)
-        embed.add_field(name='Monsters', value='There are 5 monsters that can spawn:\n:vampire: Vampires\n:zombie: Zombies\n:ghost: Ghosts\n:m: Mummies\n:regional_indicator_w: Witches', inline=False)
+        embed = discord.Embed(title='Welcome to the Halloween game!', description='Here are the halloween commands:', color=self.color)
+        embed.add_field(name=':sword: Sword', value='`?sword` Use your sword to kill monsters, deals 100 damage. Can be used once every 24 hours.', inline=False)
+        embed.add_field(name=':chopsticks: Staff', value='`?staff` Use your staff to kill monsters, deals 50 damage. Can be used twice every 24 hours.', inline=False)
+        embed.add_field(name=':dagger: Penknife', value='`?penknife` Use your penknife to kill monsters, deals 25 damage. Can be used 4 times every 24 hours.', inline=False)
+        embed.add_field(name='Leaderboard', value='`?lb` or `?leaderboard` Shows the players with the most points, obtained from killing monsters.', inline=False)
+        embed.add_field(name='Monsters', value='There are 5 monsters that can spawn:\n:vampire: Vampires\n:zombie: Zombies\n:ghost: Ghosts\n:mummy: Mummies\n:witch: Witches', inline=False)
 
         await ctx.send(embed=embed)
 

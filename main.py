@@ -56,7 +56,7 @@ help_items = {
 		},
 		{
 			'name': 'Modlogs',
-			'value': ''
+			'value': 'This allows you to view the past moderation logs of a user by running `?modlogs [UserID]`'
 		}
 	]
 }
@@ -234,7 +234,7 @@ async def unload_cogs(ctx, *cogs):
 @bot.event
 async def on_ready():
 	await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name='discord.gg/youtubers'))
-	print(f'{bot.user} is up and ready to go!')
+	print(f'{bot.user} is up and ready to go! Yay!')
 
 
 load_cogs()
