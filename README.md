@@ -21,9 +21,12 @@ Before adding the bot, do this:
  
 3. After startup run the command '?uc commands_5' to remove the buggy extension.
 
-## Creative's Personal Guide
+# How to Host/Make Changes on the Public Bot (by Creative)
 - make changes locally (not on VPS), commit and push changes
-- open terminal → `ssh ubuntu@149.56.132.223`
-- `cd YCCUtilities/`
-- git pull
-- python3 main.py
+- open terminal and type ```ssh ubuntu@149.56.132.223```
+- Change directory into the folder where the bot is ```cd YCCUtilities/```
+- Enter the command ```pm2 stop YCCUtilities```
+- Pull your changes with ```git pull```
+- Run the command ```pm2 start YCCUtilities```
+- To view any logs, run ```pm2 logs YCCUtilities```
+- You can now close the terminal if you wish, and the bot will still be on. Please make changes locally, test them out, and then pull.
