@@ -23,7 +23,7 @@ Before adding the bot, do this:
 
 # How to Host/Make Changes on the Public Bot (by Creative)
 - make changes locally (not on VPS), commit and push changes
-- open terminal and type ```ssh ubuntu@149.56.132.123```
+- open terminal and type ```ssh ubuntu@149.56.132.223```
 - Change directory into the folder where the bot is ```cd YCCUtilities/```
 - Enter the command ```pm2 stop YCCUtilities```
 - Pull your changes with ```git pull```
