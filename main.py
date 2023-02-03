@@ -364,7 +364,7 @@ class YCCUtilities(commands.Bot):
             await self.embed_error(ctx, f'An unexpected error occurred: {error}')
             logging.warning(error)
 
-    @tasks.loop(seconds=30)
+    @tasks.loop(seconds=60)
     async def process_expired_logs(self):
         await self.wait_until_ready()
         self.guild = self.get_guild(int(os.getenv('GUILD_ID')))
