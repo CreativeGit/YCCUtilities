@@ -408,7 +408,7 @@ class YCCUtilities(commands.Bot):
     async def setup_hook(self) -> None:
         logging.info('Setting up database...')
 
-        self.db = await aiosqlite.connect('data.db')
+        self.db = await aiosqlite.connect(os.getenv('DATABASE'))
         await self.db.execute('PRAGMA journal_mode=wal')
         await self.format_db()
 
