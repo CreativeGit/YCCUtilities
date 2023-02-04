@@ -126,16 +126,22 @@ class UserStatistics(commands.Cog):
         if not before.channel:
             self.vc_data_ongoing.append((member.id, after.channel.id, floor(utils.utcnow().timestamp())))
         elif not after.channel:
-            joined_log = [entry for entry in self.vc_data_ongoing if entry[0] == member.id][0]
-            self.vc_data_ongoing.remove(joined_log)
-            self.vc_data_done.append((joined_log[0], joined_log[1], joined_log[2],
-                                      floor(utils.utcnow().timestamp())))
+            try:
+                joined_log = [entry for entry in self.vc_data_ongoing if entry[0] == member.id][0]
+                self.vc_data_ongoing.remove(joined_log)
+                self.vc_data_done.append((joined_log[0], joined_log[1], joined_log[2],
+                                         floor(utils.utcnow().timestamp())))
+            except IndexError:
+                logging.warning('Voice state update event ignored due to incomplete data')
         else:
-            joined_log = [entry for entry in self.vc_data_ongoing if entry[0] == member.id][0]
-            self.vc_data_ongoing.remove(joined_log)
-            self.vc_data_done.append((joined_log[0], joined_log[1], joined_log[2],
-                                      floor(utils.utcnow().timestamp())))
-            self.vc_data_ongoing.append((member.id, after.channel.id, floor(utils.utcnow().timestamp())))
+            try:
+                joined_log = [entry for entry in self.vc_data_ongoing if entry[0] == member.id][0]
+                self.vc_data_ongoing.remove(joined_log)
+                self.vc_data_done.append((joined_log[0], joined_log[1], joined_log[2],
+                                         floor(utils.utcnow().timestamp())))
+                self.vc_data_ongoing.append((member.id, after.channel.id, floor(utils.utcnow().timestamp())))
+            except IndexError:
+                logging.warning('Voice state update event ignored due to incomplete data')
 
     @commands.command(
         brief=' opt<time-elapsed>',
