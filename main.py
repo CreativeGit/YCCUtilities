@@ -21,7 +21,7 @@ from ast import literal_eval as l_e
 from json import dumps
 from typing import Union
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s (%(filename)s) - %(message)s')
 load_dotenv()
 
 
