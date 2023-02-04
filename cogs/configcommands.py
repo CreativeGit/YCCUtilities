@@ -240,6 +240,16 @@ class ConfigCommands(commands.Cog):
         await self.bot.embed_success(
             ctx, 'Data successfully wiped. (Modlogs, suggestions and blacklists are unaffected.)')
 
+    @commands.command(
+        brief='',
+        description='Closes the bot\'s connection to Discord. Requires command author to be a guild/bot owner.')
+    @commands.guild_only()
+    async def terminate(self, ctx: commands.Context):
+        if self.bot.member_clearance(ctx.author) >= 10:
+            await self.bot.embed_success(ctx, 'Closing bot...')
+            logging.info('Received signal to terminate bot and event loop.')
+            await self.bot.close()
+
 
 async def setup(bot):
     await bot.add_cog(ConfigCommands(bot))
