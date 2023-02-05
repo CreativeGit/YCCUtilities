@@ -232,6 +232,34 @@ class UserStatistics(commands.Cog):
         await message.delete()
         await ctx.send(embed=stats_embed)
 
+    @commands.command(
+        brief=' opt<user> opt<time-elapsed>',
+        description='View the modstats of a user. Requires Head Mod or higher.')
+    @commands.guild_only()
+    async def modstats(self, ctx: commands.Context, user: User = None, duration_since: str = '30d'):
+        if self.bot.member_clearance(ctx.author) < 6:
+            return
+        elif not user:
+            user = ctx.author
+
+        resolved_duration = DurationConverter(duration_since).get_resolved_duration()
+        if not resolved_duration or not 60 <= resolved_duration <= 315532800:
+            resolved_duration = 2592000
+
+        modstats = await self.bot.modstats(user.id, resolved_duration)
+
+        since_time = floor(utils.utcnow().timestamp() - resolved_duration)
+
+        modstats_embed = Embed(colour=0x337fd5, title=user, description=f'**Since <t:{since_time}:F>**')
+        modstats_embed.set_author(name='User Moderation Statistics', icon_url=self.bot.user.avatar)
+        modstats_embed.set_thumbnail(url=user.avatar if user.avatar else ctx.guild.icon)
+
+        for item in modstats:
+            modstats_embed.add_field(name=f'{item}s', value=f'> `{"{:,}".format(modstats[item])}`')
+        modstats_embed.add_field(name='\u200b', value='\u200b')
+
+        await ctx.send(embed=modstats_embed)
+
 
 async def setup(bot):
     await bot.add_cog(UserStatistics(bot))

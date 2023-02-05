@@ -118,6 +118,7 @@ class EventListeners(commands.Cog):
 
                 user_logs = ModLogsByUser(member)
                 await user_logs.add_log(message.author.id, command[1], command[2], command[3], 0)
+                await self.bot.add_modstat(message.author.id, command[1])
 
                 return
 

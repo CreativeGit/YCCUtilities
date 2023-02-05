@@ -97,6 +97,7 @@ class PunishmentCommands(commands.Cog):
 
         user_logs = ModLogsByUser(user)
         await user_logs.add_log(ctx.author.id, 'Warn', reason, 0, 0)
+        await self.bot.add_modstat(ctx.author.id, 'Warn')
         try:
             await user.send(embed=Embed(
                 colour=0xf04a47, description=f'***You were warned in {ctx.guild} for:*** {reason}'))
@@ -117,7 +118,7 @@ class PunishmentCommands(commands.Cog):
 
         user_logs = ModLogsByUser(member)
         await user_logs.add_log(ctx.author.id, 'Kick', reason, 0, 0)
-
+        await self.bot.add_modstat(ctx.author.id, 'Kick')
         try:
             await member.send(embed=Embed(colour=0xf04a47,
                                           description=f'***You were kicked from {ctx.guild} for:*** {reason}'))
@@ -149,6 +150,7 @@ class PunishmentCommands(commands.Cog):
 
         user_logs = ModLogsByUser(user)
         await user_logs.add_log(ctx.author.id, 'Mute', reason, resolved_duration, 0)
+        await self.bot.add_modstat(ctx.author.id, 'Mute')
         lasts_until = floor(utils.utcnow().timestamp() + resolved_duration)
 
         try:
@@ -185,6 +187,7 @@ class PunishmentCommands(commands.Cog):
 
         user_logs = ModLogsByUser(user)
         await user_logs.add_log(ctx.author.id, 'Ban', reason, resolved_duration, 0)
+        await self.bot.add_modstat(ctx.author.id, 'Ban')
         lasts_until = floor(utils.utcnow().timestamp() + resolved_duration)
 
         if resolved_duration == 1000000000:
@@ -228,6 +231,7 @@ class PunishmentCommands(commands.Cog):
 
         user_logs = ModLogsByUser(user)
         await user_logs.add_log(ctx.author.id, 'Channel Ban', reason, resolved_duration, channel.id)
+        await self.bot.add_modstat(ctx.author.id, 'Channel Ban')
         lasts_until = floor(utils.utcnow().timestamp() + resolved_duration)
 
         if resolved_duration == 1000000000:

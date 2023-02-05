@@ -152,6 +152,8 @@ class YCCUtilities(commands.Bot):
         await self.db.execute(f'create table if not exists voice_stats (user_id integer, channel_id integer, '
                               f'joined integer, left integer)')
 
+        await self.db.execute('create table if not exists modstats (user_id integer, log_type text, logged_at integer)')
+
         await self.db.commit()
 
     async def blacklist(self, blacklist: str):
@@ -291,6 +293,24 @@ class YCCUtilities(commands.Bot):
     async def add_vc_stat(self, member_id: int, channel_id: int, joined_at: int, left_at: int):
         await self.db.execute(f'INSERT INTO voice_stats (user_id, channel_id, joined, left) VALUES (?, ?, ?, ?)',
                               (member_id, channel_id, joined_at, left_at))
+        await self.db.commit()
+
+    async def modstats(self, user_id: int, duration: int):
+        cursor = await self.db.execute('SELECT log_type FROM modstats WHERE user_id = ? AND logged_at > ?',
+                                       (user_id, floor(utils.utcnow().timestamp() - duration)))
+        data = await cursor.fetchall()
+
+        modstats_by_count = {'Warn': 0, 'Mute': 0, 'Kick': 0, 'Ban': 0, 'Channel Ban': 0}
+        for entry in data:
+            try:
+                modstats_by_count[entry[0]] += 1
+            except KeyError:
+                continue
+        return modstats_by_count
+
+    async def add_modstat(self, user_id: int, log_type: str):
+        await self.db.execute('INSERT INTO modstats (user_id, log_type, logged_at) VALUES (?, ?, ?)',
+                              (user_id, log_type, floor(utils.utcnow().timestamp())))
         await self.db.commit()
 
     async def get_owners(self):
