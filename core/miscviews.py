@@ -10,7 +10,7 @@ from discord import (
     Embed)
 
 
-class RolesView(ui.Button):
+class RolesButton(ui.Button):
     def __init__(self, bot, role: Role):
         super().__init__(label=role.name, emoji='<:role:1014718526075961374>', style=ButtonStyle.grey)
         self.bot = bot
@@ -29,12 +29,12 @@ class RolesView(ui.Button):
                 interaction, '❌ Something went wrong, please contact a staff member.', 0xf04a47)
 
 
-class RolesButtons(ui.View):
+class RolesView(ui.View):
     def __init__(self, bot, roles: list[Role]):
         super().__init__(timeout=None)
         for role in roles:
             if len(self.children) <= 25:
-                self.add_item(RolesView(bot, role))
+                self.add_item(RolesButton(bot, role))
 
 
 class RulesButtons(ui.View):

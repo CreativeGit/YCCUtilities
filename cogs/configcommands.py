@@ -7,7 +7,7 @@ from discord import (
 from datetime import timedelta
 from core.pageviewer import PageButtons
 from core.duration import DurationConverter
-from core.views import RulesButtons, RolesButtons
+from core.views import RulesButtons, RolesView
 from json import loads
 
 
@@ -301,7 +301,7 @@ class ConfigCommands(commands.Cog):
 
         embeds = await self.parse_embed_json(ctx)
         if embeds:
-            await channel.send(embeds=[emb for emb in embeds], view=RolesButtons(self.bot, role_list))
+            await channel.send(embeds=[emb for emb in embeds], view=RolesView(self.bot, role_list))
             await self.bot.embed_success(ctx, 'Embed posted!')
 
     @commands.command(
