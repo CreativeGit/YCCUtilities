@@ -20,6 +20,7 @@ from math import floor
 from ast import literal_eval as l_e
 from json import dumps
 from typing import Union
+from core.views import RulesButtons
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s (%(filename)s) - %(message)s')
 load_dotenv()
@@ -453,6 +454,8 @@ class YCCUtilities(commands.Bot):
             exit()
 
         logging.info(f'Logging in as {self.user} (ID: {self.user.id})...')
+
+        self.add_view(RulesButtons(self))
 
         try:
             owners = await self.get_owners()
