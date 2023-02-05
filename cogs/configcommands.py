@@ -15,10 +15,15 @@ class ConfigCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @staticmethod
-    def parse_embed_json(json_file):
-        for embed in json_file['embeds']:
-            yield Embed().from_dict(embed)
+    async def parse_embed_json(self, ctx: commands.Context):
+        try:
+            json_file = ctx.message.attachments[0]
+            json_data = loads(await json_file.read())
+            return [Embed().from_dict(embed) for embed in json_data['embeds']]
+        except IndexError:
+            await self.bot.embed_error(ctx, 'No attached file found.')
+        except KeyError:
+            await self.bot.embed_error(ctx, 'Unknown/invalid file.')
 
     @commands.command(
         brief=' <shortcut> *<response>',
@@ -239,37 +244,26 @@ class ConfigCommands(commands.Cog):
         brief=' opt<text-channel>',
         description='Posts an embedded message in the specified text channel. You can customise an embedded message '
                     '**[here](https://discohook.org/)**, copy the JSON data and save it as a `.json` file. This file '
-                    'should be attached to your message whilst invoking the command. Message content and multiple '
-                    'embeds are supported, but currently not separate message attachments. '
-                    'Requires Senior Staff or higher.')
+                    'should be attached to your message whilst invoking the command. Message content and attachments '
+                    'are not supported. Requires Senior Staff or higher.')
     async def embed(self, ctx: commands.Context, channel: TextChannel = None):
         if self.bot.member_clearance(ctx.author) < 7:
             return
         elif not channel:
             channel = ctx.channel
 
-        try:
-            json_file = ctx.message.attachments[0]
-            json_data = loads(await json_file.read())
-            embeds = self.parse_embed_json(json_data)
-        except IndexError:
-            await self.bot.embed_error(ctx, 'No file attached.')
-            return
-        else:
-            if not json_file.filename.endswith('.json'):
-                await self.bot.embed_error(ctx, 'Invalid file attached.')
-                return
-
-        await channel.send(content=json_data['content'], embeds=[emb for emb in embeds])
-        await self.bot.embed_success(ctx, 'Embed posted!')
+        embeds = await self.parse_embed_json(ctx)
+        if embeds:
+            await channel.send(embeds=embeds)
+            await self.bot.embed_success(ctx, 'Embed posted!')
 
     @commands.command(
         brief=' opt<text-channel>',
         description='Posts an embedded message in the specified text channel with built-in informational buttons '
                     'attached. You can customise an embedded message **[here](https://discohook.org/)**, copy the '
                     'JSON data and save it as a `.json` file. This file should be attached to your message whilst '
-                    'invoking the command. Message content and multiple embeds are supported, but currently not '
-                    'separate message attachments. Requires Senior Staff or higher.')
+                    'invoking the command. Message content and attachments are not currently supported. Requires '
+                    'Senior Staff or higher.')
     @commands.guild_only()
     async def rulesetup(self, ctx: commands.Context, channel: TextChannel = None):
         if self.bot.member_clearance(ctx.author) < 7:
@@ -277,20 +271,10 @@ class ConfigCommands(commands.Cog):
         elif not channel:
             channel = ctx.channel
 
-        try:
-            json_file = ctx.message.attachments[0]
-            json_data = loads(await json_file.read())
-            embeds = self.parse_embed_json(json_data)
-        except IndexError:
-            await self.bot.embed_error(ctx, 'No file attached.')
-            return
-        else:
-            if not json_file.filename.endswith('.json'):
-                await self.bot.embed_error(ctx, 'Invalid file attached.')
-                return
-
-        await channel.send(content=json_data['content'], embeds=[emb for emb in embeds], view=RulesButtons(self.bot))
-        await self.bot.embed_success(ctx, 'Embed posted!')
+        embeds = await self.parse_embed_json(ctx)
+        if embeds:
+            await channel.send(embeds=embeds, view=RulesButtons(self.bot))
+            await self.bot.embed_success(ctx, 'Embed posted!')
 
     @commands.command(
         brief=' <text-channel> <role-ids>',
@@ -298,8 +282,8 @@ class ConfigCommands(commands.Cog):
                     'attached. These buttons can be pressed by any user to add/remove their respective role. You can '
                     'customise an embedded message **[here](https://discohook.org/)**, copy the JSON data and save it '
                     'as a `.json` file. This file should be attached to your message whilst invoking the command. '
-                    'Message content and multiple embeds are supported, but currently not separate message attachments.'
-                    ' Requires Senior Staff or higher. (Note: these buttons are not persistent)')
+                    'Message content and attachments are not currently supported. Requires Senior Staff or higher. '
+                    '(Note: these buttons are not persistent)')
     @commands.guild_only()
     async def rolesetup(self, ctx: commands.Context, channel: TextChannel, *, roles: str):
         if self.bot.member_clearance(ctx.author) < 7:
@@ -315,21 +299,10 @@ class ConfigCommands(commands.Cog):
                 await self.bot.embed_error(ctx, 'Invalid/unknown role ID(s) passed.')
                 return
 
-        try:
-            json_file = ctx.message.attachments[0]
-            json_data = loads(await json_file.read())
-            embeds = self.parse_embed_json(json_data)
-        except IndexError:
-            await self.bot.embed_error(ctx, 'No file attached.')
-            return
-        else:
-            if not json_file.filename.endswith('.json'):
-                await self.bot.embed_error(ctx, 'Invalid file attached.')
-                return
-
-        await channel.send(
-            content=json_data['content'], embeds=[emb for emb in embeds], view=RolesButtons(self.bot, role_list))
-        await self.bot.embed_success(ctx, 'Embed posted!')
+        embeds = await self.parse_embed_json(ctx)
+        if embeds:
+            await channel.send(embeds=[emb for emb in embeds], view=RolesButtons(self.bot, role_list))
+            await self.bot.embed_success(ctx, 'Embed posted!')
 
     @commands.command(
         brief=' *<guild-name>',
