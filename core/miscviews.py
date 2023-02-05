@@ -11,8 +11,8 @@ from discord import (
 
 
 class RolesButton(ui.Button):
-    def __init__(self, bot, role: Role):
-        super().__init__(label=role.name, emoji='<:role:1014718526075961374>', style=ButtonStyle.grey)
+    def __init__(self, bot, role: Role, emoji: str):
+        super().__init__(label=role.name, emoji=emoji, style=ButtonStyle.grey)
         self.bot = bot
         self.role = role
 
@@ -32,9 +32,12 @@ class RolesButton(ui.Button):
 class RolesView(ui.View):
     def __init__(self, bot, roles: list[Role]):
         super().__init__(timeout=None)
+        emotes_mapping = {'Art/Animation': '🖌️', 'Music': '🎵', 'Gaming': '🎮', 'Technology': '💻',
+                          'Finance': '💸', 'Infotainment': '📺', 'Other': '❓'}
         for role in roles:
             if len(self.children) <= 25:
-                self.add_item(RolesButton(bot, role))
+                emoji = emotes_mapping[role.name] if role.name in emotes_mapping else '<:role:1014718526075961374>'
+                self.add_item(RolesButton(bot, role, emoji))
 
 
 class RulesButtons(ui.View):
