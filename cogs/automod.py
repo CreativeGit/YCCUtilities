@@ -39,7 +39,7 @@ class AutoMod(commands.Cog):
 
         if not urls or not message.guild or self.bot.member_clearance(message.author) > 2 or \
                 [role for role in message.author.roles if role in self.bot.immune_roles] or \
-                message.channel in self.bot.immune_channels:
+                message.channel in self.bot.immune_channels or message.author.id == self.bot.user.id:
             return
 
         try:
