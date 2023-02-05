@@ -522,7 +522,6 @@ class YCCUtilities(commands.Bot):
 class HelpCommand(commands.HelpCommand):
     async def send_bot_help(self, mapping: Mapping):
         help_menu_embed = Embed(colour=0x337fd5, title='All Commands')
-
         help_menu_embed.set_author(name='Help Menu', icon_url=bot.user.avatar.url)
         help_menu_embed.set_footer(text=f'Use {bot.command_prefix}help <command> for more info on a single command.')
 
@@ -534,16 +533,12 @@ class HelpCommand(commands.HelpCommand):
                          'UserStatistics': 'Activity Statistics Commands',
                          'TriviaModule': 'Trivia Commands'}
 
-        for cog_name in bot.cogs:
-            if cog_name in cog_name_dict:
-                cog = bot.get_cog(cog_name)
-
+        for cog in mapping:
+            if cog and cog.qualified_name in cog_name_dict:
                 cog_commands = f'`{"` `".join([command.qualified_name for command in cog.get_commands()])}`'
-
                 help_menu_embed.add_field(name=cog_name_dict[cog.qualified_name],
                                           value=cog_commands,
                                           inline=False)
-
         await self.context.send(embed=help_menu_embed)
 
     async def send_command_help(self, command: commands.Command):
