@@ -440,8 +440,8 @@ class MiscCommands(commands.Cog):
 
         message = await channel.send(embed=ga_embed)
         view = GiveawayButton(self.bot, message, winners, resolved_duration, desc)
-        await view.expire()
         await message.edit(view=view)
+        await view.expire()
 
 
 async def setup(bot):
