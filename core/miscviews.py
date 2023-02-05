@@ -46,7 +46,7 @@ class RulesButtons(ui.View):
         self.bot = bot
         self.add_item(ui.Button(
             label='Apply For Staff',
-            url='https://docs.google.com/forms/d/e/1FAIpQLSc7W2GpFSEiiRdKQtpM9oudY6tkvnNAS-ZpEywYmzN_4MTMdg/viewform'))
+            url=bot.staff_form))
 
     @ui.button(label='Ban Appeals', emoji='<:icons_banhammer:1016821788270932028>',
                style=ButtonStyle.grey, custom_id='appeal_button')
