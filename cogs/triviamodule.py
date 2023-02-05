@@ -56,6 +56,18 @@ class TriviaModule(commands.Cog):
         self.weekly_reset.start()
         await self.bot.embed_success('Started trivia.')
 
+    @commands.command(
+        brief='',
+        description='Stops the trivia weekly task loop. Ongoing Trivia games will continue as normal until finished. '
+                    'Requires Senior Staff or higher.')
+    @commands.guild_only()
+    async def stop(self, ctx: commands.Context):
+        if self.bot.member_clearance(ctx.author) < 7:
+            return
+        self.weekly_reset.stop()
+        self.trivia_loop_main.stop()
+        await self.bot.embed_success('Stopping trivia...')
+
     @tasks.loop(hours=168)
     async def weekly_reset(self):
         self.weekly_lb = {}
@@ -123,8 +135,8 @@ class TriviaModule(commands.Cog):
             await end_question()
         else:
             def check(msg: Message):
-                return msg.content.lower() == self.current_answer.lower() and \
-                       msg.channel == self.bot.trivia_channel
+                return msg.content.lower() == self.current_answer.lower() and msg.channel == self.bot.trivia_channel \
+                       and msg.author.id not in await self.bot.blacklist('trivia')
             try:
                 await self.bot.wait_for('message', check=check, timeout=23)
             except TimeoutError:
@@ -174,7 +186,7 @@ class TriviaModule(commands.Cog):
     async def on_message(self, message: Message):
         if not self.game_is_ongoing or not self.current_question or message.channel != self.bot.trivia_channel or \
                 message.author.bot or message.content.lower() != self.current_answer.lower() or \
-                message.author in self.current_correct:
+                message.author in self.current_correct or message.author.id in await self.bot.blacklist('trivia'):
             return
         self.current_correct.append(message.author)
 
