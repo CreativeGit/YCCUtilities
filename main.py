@@ -563,7 +563,7 @@ class HelpCommand(commands.HelpCommand):
         await self.context.send(embed=command_help_embed)
 
     async def send_error_message(self, error: commands.CommandError):
-        await self.context.send(embed=Embed(colour=0xf04a47, description='❌ Something went wrong.'))
+        await bot.on_command_error(self.context, error)
 
 
 bot = YCCUtilities()
