@@ -9,9 +9,15 @@ from discord import (
     ButtonStyle,
     Message,
     Interaction,
-    ui)
+    ui,
+    utils,
+    TextChannel)
 from core.pageviewer import PageButtons
+from core.duration import DurationConverter
 from ast import literal_eval as l_e
+from math import floor
+from asyncio import sleep
+from random import sample
 
 
 class SuggestionButtons(ui.View):
@@ -87,6 +93,36 @@ class SuggestionButtons(ui.View):
         self.agree.disabled = True
         self.disagree.disabled = True
         await self.message.edit(view=self)
+
+
+class GiveawayButton(ui.View):
+    def __init__(self, bot, message: Message, winners: int, duration: int, description: str):
+        super().__init__(timeout=None)
+        self.bot = bot
+        self.message = message
+        self.winners = winners
+        self.duration = duration
+        self.description = description
+        self.entries = []
+
+    @ui.button(label='Enter!', emoji='<:partypopper:733421037168885840>', style=ButtonStyle.green)
+    async def enter(self, interaction: Interaction, button: Button):
+        if interaction.user in self.entries:
+            await self.bot.send_ephemeral_response(interaction, '❌ You already entered this giveaway.', 0xf04a47)
+            return
+        self.entries.append(interaction.user)
+        await self.bot.send_ephemeral_response(interaction, 'Giveaway entered!', 0x43b582)
+
+    async def expire(self):
+        await sleep(self.duration)
+
+        self.stop()
+        self.enter.disabled = True
+        await self.message.edit(view=self)
+
+        winners = sample(self.entries, self.winners)
+        await self.message.reply(
+            f'Congratulations {", ".join([u.mention for u in winners])}, you won a giveaway: {self.description}!')
 
 
 class MiscCommands(commands.Cog):
@@ -382,6 +418,30 @@ class MiscCommands(commands.Cog):
         await self.bot.end_suggestion(suggestion_id, 'Declined')
         await suggestion_message.edit(embed=suggestion_embed, view=None)
         await self.bot.embed_success(ctx, 'Suggestion declined.')
+
+    @commands.command(
+        brief=' <text-channel> <winners> <duration> *<description>',
+        description='Hosts a giveaway in the specified channel. Requires Senior Staff or higher.')
+    @commands.guild_only()
+    async def giveaway(self, ctx: commands.Context, channel: TextChannel, winners: int, duration: str, *, desc: str):
+        if self.bot.member_clearance(ctx.author) < 7:
+            return
+
+        resolved_duration = DurationConverter(duration).get_resolved_duration()
+        if not resolved_duration or not 3600 <= resolved_duration <= 2419200:
+            await self.bot.embed_error(ctx, 'Specify a valid duration between 1 hour and 28 days.')
+            return
+
+        ga_embed = Embed(colour=0x337fd5, title=desc)
+        ga_embed.set_thumbnail(url=self.bot.guild.icon if self.bot.guild.icon else self.bot.user.avatar)
+        ga_embed.set_footer(text=f'{winners} Winner(s) • Started at {utils.utcnow().strftime("%m/%d/%Y, %H:%M:%S")}')
+        ga_embed.add_field(name='Ends:', value=f'<t:{floor(utils.utcnow().timestamp() + resolved_duration)}:F>')
+        ga_embed.add_field(name='Hosted By:', value=ctx.author.mention)
+
+        message = await channel.send(embed=ga_embed)
+        view = GiveawayButton(self.bot, message, winners, resolved_duration, desc)
+        await view.expire()
+        await message.edit(view=view)
 
 
 async def setup(bot):
