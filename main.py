@@ -62,6 +62,9 @@ class YCCUtilities(commands.Bot):
 
         self.immune_roles = []
 
+        self.blacklisted_domains = os.getenv('BLACKLISTED_DOMAINS').split(',')
+        self.whitelisted_domains = os.getenv('WHITELISTED_DOMAINS').split(',')
+
         self.db = None
 
     @property
