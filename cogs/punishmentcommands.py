@@ -423,6 +423,30 @@ class PunishmentCommands(commands.Cog):
             colour=0x43b582, description=f'*Successfully purged {len(purged_messages)} messages.*'), delete_after=5)
 
     @commands.command(
+        brief=' <duration>',
+        aliases=['sm'],
+        description='Sets a slow-mode timer for the current channel. Type `off` to disable entirely. Requires Senior '
+                    'Mod or higher.')
+    @commands.bot_has_permissions(manage_channels=True)
+    @commands.guild_only()
+    async def slowmode(self, ctx: commands.Context, duration: str):
+        if self.bot.member_clearance(ctx.author) < 5:
+            return
+
+        if duration.lower() == 'off':
+            await ctx.channel.edit(slowmode_delay=0)
+            await self.bot.embed_success(ctx, 'Slowmode disabled.')
+            return
+
+        resolved_duration = DurationConverter(duration).get_resolved_duration()
+        if not resolved_duration or not 1 <= resolved_duration <= 21600:
+            await self.bot.embed_error(ctx, 'Specify a valid duration between 1 second and 6 hours.')
+            return
+
+        await ctx.channel.edit(slowmode_delay=resolved_duration)
+        await self.bot.embed_success(ctx, f'Slowmode set to `{timedelta(seconds=resolved_duration)}`.')
+
+    @commands.command(
         brief=' opt<channel>',
         description='Locks a channel, preventing all non-staff users from communicating in it. Requires Senior Mod '
                     'or higher.')
