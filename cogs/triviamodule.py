@@ -183,7 +183,6 @@ class TriviaModule(commands.Cog):
         weekly_embed = Embed(colour=0x337fd5, title='Weekly Leaderboard', description=weekly_description)
         weekly_embed.set_author(name='Trivia', icon_url=self.bot.user.avatar)
         await self.bot.trivia_channel.send(embed=weekly_embed)
-        print(3)
 
         self.recent_scores = {}
 
