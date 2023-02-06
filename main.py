@@ -600,4 +600,5 @@ class HelpCommand(commands.HelpCommand):
 
 bot = YCCUtilities()
 
-bot.run_bot()
+if __name__ == '__main__':
+    bot.run_bot()
