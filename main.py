@@ -354,6 +354,49 @@ class YCCUtilities(commands.Bot):
             command_list.append(entry[0])
         return command_list
 
+    @staticmethod
+    async def bot_help(ctx: commands.Context, mapping: Mapping) -> None:
+        help_menu_embed = Embed(colour=0x337fd5, title='All Commands')
+        help_menu_embed.set_author(name='Help Menu', icon_url=bot.user.avatar.url)
+        help_menu_embed.set_footer(text=f'Use {bot.command_prefix}help <command> for more info on a single command.')
+
+        cog_name_dict = {'ConfigCommands': 'Server Configuration Commands',
+                         'MiscCommands': 'Miscellaneous Commands',
+                         'ModLogsCommands': 'Modlogs Commands',
+                         'PunishmentCommands': 'Moderation Commands',
+                         'InfoCommands': 'Info Commands',
+                         'UserStatistics': 'Activity Statistics Commands',
+                         'TriviaModule': 'Trivia Commands'}
+
+        for cog in mapping:
+            if cog and cog.qualified_name in cog_name_dict:
+                cog_commands = f'`{"` `".join([command.qualified_name for command in cog.get_commands()])}`'
+                help_menu_embed.add_field(name=cog_name_dict[cog.qualified_name],
+                                          value=cog_commands,
+                                          inline=False)
+        await ctx.send(embed=help_menu_embed)
+
+    @staticmethod
+    async def command_help(ctx: commands.Context, command: commands.Command) -> None:
+        command_help_embed = Embed(colour=0x337fd5,
+                                   title=f'{bot.command_prefix}{command.qualified_name} Command',
+                                   description=command.description)
+
+        command_help_embed.set_author(name='Help Menu', icon_url=bot.user.avatar.url)
+        command_help_embed.set_footer(text=f'Use {bot.command_prefix}help to view all commands.')
+
+        command_help_embed.add_field(name='Usage:',
+                                     value=f'`{bot.command_prefix}{command.qualified_name}{command.brief}`'
+                                     if command.qualified_name != 'help'
+                                     else f'`{bot.command_prefix}help opt<command-name>`',
+                                     inline=False)
+
+        command_help_embed.add_field(name='Aliases:',
+                                     value=f'`{", ".join([alias for alias in command.aliases])}`' if command.aliases
+                                     else '`None`',
+                                     inline=False)
+        await ctx.send(embed=command_help_embed)
+
     async def on_command_error(self, ctx: commands.Context, error: Exception) -> None:
         if isinstance(error, commands.CommandOnCooldown):
             await self.embed_error(ctx, f'Whoa there! Wait `{floor(error.retry_after)}s` before trying that again.')
@@ -369,7 +412,7 @@ class YCCUtilities(commands.Bot):
                                         f'`{"".join(error.missing_permissions).replace("_", " ")}`.')
 
         elif isinstance(error, commands.MissingRequiredArgument):
-            await self.embed_error(ctx, f'Missing required arguments.')
+            await self.command_help(ctx, ctx.command)
 
         elif isinstance(error, commands.UserNotFound):
             await self.embed_error(ctx, 'User not found.')
@@ -526,46 +569,10 @@ class YCCUtilities(commands.Bot):
 
 class HelpCommand(commands.HelpCommand):
     async def send_bot_help(self, mapping: Mapping):
-        help_menu_embed = Embed(colour=0x337fd5, title='All Commands')
-        help_menu_embed.set_author(name='Help Menu', icon_url=bot.user.avatar.url)
-        help_menu_embed.set_footer(text=f'Use {bot.command_prefix}help <command> for more info on a single command.')
-
-        cog_name_dict = {'ConfigCommands': 'Server Configuration Commands',
-                         'MiscCommands': 'Miscellaneous Commands',
-                         'ModLogsCommands': 'Modlogs Commands',
-                         'PunishmentCommands': 'Moderation Commands',
-                         'InfoCommands': 'Info Commands',
-                         'UserStatistics': 'Activity Statistics Commands',
-                         'TriviaModule': 'Trivia Commands'}
-
-        for cog in mapping:
-            if cog and cog.qualified_name in cog_name_dict:
-                cog_commands = f'`{"` `".join([command.qualified_name for command in cog.get_commands()])}`'
-                help_menu_embed.add_field(name=cog_name_dict[cog.qualified_name],
-                                          value=cog_commands,
-                                          inline=False)
-        await self.context.send(embed=help_menu_embed)
+        await bot.bot_help(self.context, mapping)
 
     async def send_command_help(self, command: commands.Command):
-        command_help_embed = Embed(colour=0x337fd5,
-                                   title=f'{bot.command_prefix}{command.qualified_name} Command',
-                                   description=command.description)
-
-        command_help_embed.set_author(name='Help Menu', icon_url=bot.user.avatar.url)
-        command_help_embed.set_footer(text=f'Use {bot.command_prefix}help to view all commands.')
-
-        command_help_embed.add_field(name='Usage:',
-                                     value=f'`{bot.command_prefix}{command.qualified_name}{command.brief}`'
-                                     if command.qualified_name != 'help'
-                                     else f'`{bot.command_prefix}help opt<command-name>`',
-                                     inline=False)
-
-        command_help_embed.add_field(name='Aliases:',
-                                     value=f'`{", ".join([alias for alias in command.aliases])}`' if command.aliases
-                                     else '`None`',
-                                     inline=False)
-
-        await self.context.send(embed=command_help_embed)
+        await bot.command_help(self.context, command)
 
     async def send_error_message(self, error: commands.CommandError):
         await bot.on_command_error(self.context, error)
