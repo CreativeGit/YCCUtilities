@@ -12,7 +12,8 @@ from discord import (
     abc, Member,
     Interaction,
     Embed, utils,
-    Forbidden)
+    Forbidden,
+    Role)
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 from typing import Mapping
@@ -20,7 +21,7 @@ from math import floor
 from ast import literal_eval as l_e
 from json import dumps
 from typing import Union
-from core.views import RulesButtons
+from core.views import RulesButtons, RolesView
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s (%(filename)s) - %(message)s')
 load_dotenv()
@@ -158,6 +159,8 @@ class YCCUtilities(commands.Bot):
                               f'joined integer, left integer)')
 
         await self.db.execute('create table if not exists modstats (user_id integer, log_type text, logged_at integer)')
+
+        await self.db.execute('create table if not exists pers_role_views (role_ids text)')
 
         await self.db.commit()
 
@@ -317,6 +320,16 @@ class YCCUtilities(commands.Bot):
         await self.db.execute('INSERT INTO modstats (user_id, log_type, logged_at) VALUES (?, ?, ?)',
                               (user_id, log_type, floor(utils.utcnow().timestamp())))
         await self.db.commit()
+
+    async def add_pers_role_view(self, roles: list[Role]):
+        await self.db.execute('INSERT INTO pers_role_views (role_ids) VALUES (?)',
+                              (dumps([role.id for role in roles]),))
+        await self.db.commit()
+
+    async def get_pers_role_views(self):
+        cursor = await self.db.execute('SELECT * FROM pers_role_views')
+        data = await cursor.fetchall()
+        return data
 
     async def get_owners(self):
         return [await self.fetch_user(user_id) for user_id in self.owner_ids]
@@ -523,6 +536,13 @@ class YCCUtilities(commands.Bot):
 
         logging.info(f'Logging in as {self.user} (ID: {self.user.id})...')
 
+        pers_role_view_data = await self.get_pers_role_views()
+        for item in pers_role_view_data:
+            role_list = [self.guild.get_role(role_id) for role_id in l_e(item[0])]
+            if None in role_list:
+                logging.warning('Failed to add persistent view: Unknown role ID')
+            else:
+                self.add_view(RolesView(self, role_list))
         self.add_view(RulesButtons(self))
 
         try:

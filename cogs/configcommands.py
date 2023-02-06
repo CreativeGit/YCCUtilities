@@ -302,6 +302,7 @@ class ConfigCommands(commands.Cog):
         embeds = await self.parse_embed_json(ctx)
         if embeds:
             await channel.send(embeds=[emb for emb in embeds], view=RolesView(self.bot, role_list))
+            await self.bot.add_pers_role_view(role_list)
             await self.bot.embed_success(ctx, 'Embed posted!')
 
     @commands.command(

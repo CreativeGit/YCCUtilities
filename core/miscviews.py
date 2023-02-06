@@ -12,7 +12,7 @@ from discord import (
 
 class RolesButton(ui.Button):
     def __init__(self, bot, role: Role, emoji: str):
-        super().__init__(label=role.name, emoji=emoji, style=ButtonStyle.grey)
+        super().__init__(label=role.name, emoji=emoji, style=ButtonStyle.grey, custom_id=f'r{role.id}')
         self.bot = bot
         self.role = role
 
