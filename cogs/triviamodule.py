@@ -33,40 +33,40 @@ class TriviaModule(commands.Cog):
             'hard': 3}
 
     def cog_unload(self):
-        self.weekly_reset.stop()
-        self.trivia_loop_main.stop()
+        self.weekly_reset.cancel()
+        self.trivia_loop_main.cancel()
+        self.trivia_game.cancel()
 
     def generate_question(self) -> None:
-        question_data = self.api.request(1, type_=Type.Multiple_Choice)
-        while 'which' in question_data['results'][0]['question'].lower():
+        question_data = self.api.request(1, type_=Type.Multiple_Choice)['results'][0]
+        while 'which' in question_data['question'].lower() or 'following' in question_data['question'].lower():
             question_data = self.api.request(1, type_=Type.Multiple_Choice)
-        self.current_question = question_data['results'][0]['question']
-        self.current_answer = question_data['results'][0]['correct_answer']
-        self.current_difficulty = question_data['results'][0]['difficulty']
-        self.current_category = question_data['results'][0]['category']
+        self.current_question = question_data['question']
+        self.current_answer = question_data['correct_answer']
+        self.current_difficulty = question_data['difficulty']
+        self.current_category = question_data['category']
 
     @commands.command(
         brief='',
-        description='Starts the trivia weekly task loop. Loop will run indefinitely once started. Requires Senior Staff'
-                    ' or higher.')
+        description='Starts the trivia event loop. Requires Senior Staff or higher.')
     @commands.guild_only()
     async def start(self, ctx: commands.Context):
         if self.bot.member_clearance(ctx.author) < 7:
             return
         self.weekly_reset.start()
-        await self.bot.embed_success('Started trivia.')
+        await self.bot.embed_success(ctx, 'Starting trivia...')
 
     @commands.command(
         brief='',
-        description='Stops the trivia weekly task loop. Ongoing Trivia games will continue as normal until finished. '
-                    'Requires Senior Staff or higher.')
+        description='Stops the trivia event loop. Requires Senior Staff or higher.')
     @commands.guild_only()
     async def stop(self, ctx: commands.Context):
         if self.bot.member_clearance(ctx.author) < 7:
             return
-        self.weekly_reset.stop()
-        self.trivia_loop_main.stop()
-        await self.bot.embed_success('Stopping trivia...')
+        self.weekly_reset.cancel()
+        self.trivia_loop_main.cancel()
+        self.trivia_game.cancel()
+        await self.bot.embed_success(ctx, 'Stopping trivia...')
 
     @tasks.loop(hours=168)
     async def weekly_reset(self):
@@ -116,29 +116,33 @@ class TriviaModule(commands.Cog):
 
         async def end_question():
             for m in self.current_correct:
-                if m in self.recent_scores:
+                try:
                     self.recent_scores[m] += self.difficulty_to_points[self.current_difficulty]
-                else:
+                except KeyError:
                     self.recent_scores[m] = self.difficulty_to_points[self.current_difficulty]
+
             description = '\n'.join(
                 [f"> `{m} - +{self.difficulty_to_points[self.current_difficulty]} Points "
-                 f"({self.recent_scores[m]} Total)`" for m in self.current_correct]) + f'\n**Answer: ' \
-                                                                                       f'`{self.current_answer}`'\
-                if self.current_correct else '`😢 No winners!`'
+                 f"({self.recent_scores[m]} Total)`" for m in self.current_correct]) if self.current_correct else \
+                '`😢 No winners!`'
+
             winners_embed = Embed(
                 colour=0x337fd5,
-                description='**Winners**\n' + description)
+                description=f'**Answer: {self.current_answer}**\n\n**Winners**\n' + description)
             winners_embed.set_author(name='Trivia', icon_url=self.bot.user.avatar)
             await self.bot.trivia_channel.send(embed=winners_embed)
 
         if self.current_correct:
             await end_question()
         else:
+            bl = await self.bot.blacklist('trivia')
+
             def check(msg: Message):
                 return msg.content.lower() == self.current_answer.lower() and msg.channel == self.bot.trivia_channel \
-                       and msg.author.id not in await self.bot.blacklist('trivia')
+                       and msg.author.id not in bl
             try:
-                await self.bot.wait_for('message', check=check, timeout=23)
+                message = await self.bot.wait_for('message', check=check, timeout=23)
+                self.current_correct.append(message.author)
             except TimeoutError:
                 pass
             finally:
@@ -168,17 +172,18 @@ class TriviaModule(commands.Cog):
 
         prev_description = '\n'.join(
             [f'`#{list(self.recent_scores).index(member) + 1} | {member}  ({self.recent_scores[member]} Points)`'
-             for member in list(self.recent_scores)[:prev_count]])
+             for member in list(self.recent_scores)[:prev_count]])if self.recent_scores else '`No data to display`'
         prev_game_embed = Embed(colour=0x337fd5, title='Previous Game Leaderboard', description=prev_description)
         prev_game_embed.set_author(name='Trivia', icon_url=self.bot.user.avatar)
         await self.bot.trivia_channel.send(embed=prev_game_embed)
 
         weekly_description = '\n'.join(
             [f'`#{list(self.weekly_lb).index(member) + 1} | {member}  ({self.weekly_lb[member]} Points)`'
-             for member in list(self.weekly_lb)[:weekly_count]])
+             for member in list(self.weekly_lb)[:weekly_count]]) if self.weekly_lb else '`No data to display`'
         weekly_embed = Embed(colour=0x337fd5, title='Weekly Leaderboard', description=weekly_description)
         weekly_embed.set_author(name='Trivia', icon_url=self.bot.user.avatar)
         await self.bot.trivia_channel.send(embed=weekly_embed)
+        print(3)
 
         self.recent_scores = {}
 
