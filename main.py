@@ -1,29 +1,35 @@
 import os
-import aiosqlite
 import asyncio
 import logging
-from discord import (
-    Intents,
-    Activity,
-    ActivityType,
-    LoginFailure,
-    PrivilegedIntentsRequired,
-    NotFound, HTTPException,
-    abc, Member,
-    Interaction,
-    Embed, utils,
-    Forbidden,
-    Role)
-from discord.ext import commands, tasks
-from dotenv import load_dotenv
-from typing import Mapping
+from typing import Mapping, Union
 from math import floor
 from ast import literal_eval as l_e
 from json import dumps
-from typing import Union
 from core.views import RulesButtons, RolesView
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s (%(filename)s) - %(message)s')
+
+try:
+    import aiosqlite
+    from dotenv import load_dotenv
+    from discord.ext import commands, tasks
+    from discord import (
+        __version__ as __discord__,
+        Intents,
+        Activity,
+        ActivityType,
+        LoginFailure,
+        PrivilegedIntentsRequired,
+        NotFound, HTTPException,
+        abc, Member,
+        Interaction,
+        Embed, utils,
+        Forbidden,
+        Role)
+except ModuleNotFoundError:
+    logging.fatal('Required dependencies are not installed. See requirements.txt.')
+    exit()
+
 load_dotenv()
 
 
@@ -598,7 +604,13 @@ class HelpCommand(commands.HelpCommand):
         await bot.on_command_error(self.context, error)
 
 
-bot = YCCUtilities()
-
 if __name__ == '__main__':
-    bot.run_bot()
+
+    if __discord__ == '2.1.0':
+        bot = YCCUtilities()
+        bot.run_bot()
+
+    else:
+        logging.fatal('The incorrect version of discord.py has been installed.')
+        logging.fatal('Current Version: {}'.format(__discord__))
+        logging.fatal('Required: 2.1.0')
