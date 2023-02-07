@@ -83,25 +83,25 @@ class YCCUtilities(commands.Bot):
     def member_clearance(self, member: Union[Member, None]):
         if not member:
             return 0
-        if member == self.guild.owner or f'{member.id}' in self.owner_ids:
+        elif member == self.guild.owner or f'{member.id}' in self.owner_ids:
             return 10
-        if self.admin in member.roles:
+        elif self.admin in member.roles:
             return 9
-        if self.bot_admin in member.roles:
+        elif self.bot_admin in member.roles:
             return 8
-        if self.senior_staff in member.roles:
+        elif self.senior_staff in member.roles:
             return 7
-        if self.head_mod in member.roles:
+        elif self.head_mod in member.roles:
             return 6
-        if self.senior_mod in member.roles:
+        elif self.senior_mod in member.roles:
             return 5
-        if self.moderator in member.roles:
+        elif self.moderator in member.roles:
             return 4
-        if self.trainee in member.roles:
+        elif self.trainee in member.roles:
             return 3
-        if self.staff in member.roles:
+        elif self.staff in member.roles:
             return 2
-        if self.helper in member.roles:
+        elif self.helper in member.roles:
             return 1
         return 0
 
