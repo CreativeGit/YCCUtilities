@@ -576,7 +576,7 @@ class YCCUtilities(commands.Bot):
                 except LoginFailure:
                     logging.error('Invalid token passed.')
                 except PrivilegedIntentsRequired:
-                    logging.error('Privileged intents have not been explicitly enabled in the developer portal..')
+                    logging.error('Privileged intents have not been explicitly enabled in the developer portal.')
 
         async def cancel_tasks():
             await self.db.commit()

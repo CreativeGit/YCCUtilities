@@ -23,23 +23,37 @@ class PageButtons(ui.View):
         self.update_buttons()
 
     def update_buttons(self):
+        self.first_page.disabled = False
         self.previous_page.disabled = False
         self.next_page.disabled = False
+        self.last_page.disabled = False
         if self.current_page == 1:
+            self.first_page.disabled = True
             self.previous_page.disabled = True
         if self.current_page == len(self.embed_pages):
             self.next_page.disabled = True
+            self.last_page.disabled = True
+
+    async def update_embed(self):
+        if self.message:
+            await self.message.edit(embed=self.embed_pages[self.current_page], view=self)
+        elif self.interaction:
+            await self.interaction.edit_original_response(embed=self.embed_pages[self.current_page], view=self)
+
+    @ui.button(label='<<', style=ButtonStyle.grey)
+    async def first_page(self, interaction: Interaction, button: Button):
+        self.current_page = 1
+        self.update_buttons()
+
+        await self.update_embed()
+        await interaction.response.defer()
 
     @ui.button(label='Previous Page', emoji='⬅', style=ButtonStyle.grey)
     async def previous_page(self, interaction: Interaction, button: Button):
         self.current_page -= 1
         self.update_buttons()
 
-        if self.message:
-            await self.message.edit(embed=self.embed_pages[self.current_page], view=self)
-        elif self.interaction:
-            await self.interaction.edit_original_response(embed=self.embed_pages[self.current_page], view=self)
-
+        await self.update_embed()
         await interaction.response.defer()
 
     @ui.button(label='Next Page', emoji='➡', style=ButtonStyle.grey)
@@ -47,12 +61,22 @@ class PageButtons(ui.View):
         self.current_page += 1
         self.update_buttons()
 
-        if self.message:
-            await self.message.edit(embed=self.embed_pages[self.current_page], view=self)
-        elif self.interaction:
-            await self.interaction.edit_original_response(embed=self.embed_pages[self.current_page], view=self)
-
+        await self.update_embed()
         await interaction.response.defer()
+
+    @ui.button(label='>>', style=ButtonStyle.grey)
+    async def last_page(self, interaction: Interaction, button: Button):
+        self.current_page = len(self.embed_pages)
+        self.update_buttons()
+
+        await self.update_embed()
+        await interaction.response.defer()
+
+    @ui.button(label='Stop', style=ButtonStyle.red)
+    async def _stop(self, interaction: Interaction, button: Button):
+        self.stop()
+        await interaction.response.defer()
+        await interaction.message.delete()
 
     async def interaction_check(self, interaction: Interaction):
         if self.author_id:
