@@ -48,7 +48,7 @@ class PageButtons(ui.View):
         await self.update_embed()
         await interaction.response.defer()
 
-    @ui.button(label='<', style=ButtonStyle.grey)
+    @ui.button(label='<', style=ButtonStyle.blurple)
     async def previous_page(self, interaction: Interaction, button: Button):
         self.current_page -= 1
         self.update_buttons()
@@ -56,7 +56,7 @@ class PageButtons(ui.View):
         await self.update_embed()
         await interaction.response.defer()
 
-    @ui.button(label='>', style=ButtonStyle.grey)
+    @ui.button(label='>', style=ButtonStyle.blurple)
     async def next_page(self, interaction: Interaction, button: Button):
         self.current_page += 1
         self.update_buttons()
