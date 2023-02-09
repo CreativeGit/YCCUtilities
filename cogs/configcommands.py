@@ -7,7 +7,7 @@ from discord import (
 from datetime import timedelta
 from core.pageviewer import PageButtons
 from core.duration import DurationConverter
-from core.views import RulesButtons, RolesView
+from core.miscviews import RulesButtons, RolesView
 from json import loads
 
 
