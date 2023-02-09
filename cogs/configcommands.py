@@ -317,6 +317,60 @@ class ConfigCommands(commands.Cog):
             await self.bot.embed_success(ctx, 'Embed posted!')
 
     @commands.command(
+        brief='',
+        description='View the bot\'s blacklisted and whitelisted URL domains. Requires <required-role> or higher.',
+        extras=1)
+    @commands.guild_only()
+    async def domains(self, ctx: commands.Context):
+        if self.bot.member_clearance(ctx.author) < 1:
+            return
+        urls_embed = Embed(colour=0x337fd5)
+        urls_embed.set_author(name='All Domains', icon_url=self.bot.user.avatar)
+        urls_embed.add_field(name='Whitelisted Domains:',
+                             value=', '.join([f'`{domain}`' for domain in self.bot.whitelisted_domains]),
+                             inline=False)
+        urls_embed.add_field(name='Blacklisted Domains:',
+                             value=', '.join([f'`{domain}`' for domain in self.bot.blacklisted_domains]),
+                             inline=False)
+        await ctx.send(embed=urls_embed)
+
+    @commands.command(
+        brief=' *<domain>',
+        description='Toggles the whitelisting of a URL domain. Requires <required-role> or higher.',
+        extras=5)
+    @commands.guild_only()
+    async def wldomain(self, ctx: commands.Context, *, domain: str):
+        if self.bot.member_clearance(ctx.author) < 5:
+            return
+        if domain not in self.bot.whitelisted_domains:
+            self.bot.whitelisted_domains.append(domain)
+            if domain in self.bot.blacklisted_domains:
+                self.bot.blacklisted_domains.remove(domain)
+            message = f'`{domain}` has been whitelisted.'
+        else:
+            self.bot.whitelisted_domains.remove(domain)
+            message = f'`{domain}` has been unwhitelisted.'
+        await self.bot.embed_success(ctx, message)
+
+    @commands.command(
+        brief=' *<domain>',
+        description='Toggles the blacklisting of a URL domain. Requires <required-role> or higher.',
+        extras=5)
+    @commands.guild_only()
+    async def bldomain(self, ctx: commands.Context, *, domain: str):
+        if self.bot.member_clearance(ctx.author) < 5:
+            return
+        if domain not in self.bot.blacklisted_domains:
+            self.bot.blacklisted_domains.append(domain)
+            if domain in self.bot.whitelisted_domains:
+                self.bot.whitelisted_domains.remove(domain)
+            message = f'`{domain}` has been blacklisted.'
+        else:
+            self.bot.blacklisted_domains.remove(domain)
+            message = f'`{domain}` has been unblacklisted.'
+        await self.bot.embed_success(ctx, message)
+
+    @commands.command(
         brief=' *<guild-name>',
         description='Resets the guild\'s current data. Useful as a failsafe if a deleted object ID somehow gets '
                     'trapped inside the database. Requires <required-role> or higher. Modlogs, suggestions and '

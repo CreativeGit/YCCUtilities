@@ -584,8 +584,11 @@ class YCCUtilities(commands.Bot):
                     logging.error('Privileged intents have not been explicitly enabled in the developer portal.')
 
         async def cancel_tasks():
-            await self.db.commit()
-            await self.db.close()
+            try:
+                await self.db.commit()
+                await self.db.close()
+            except AttributeError:
+                pass
             self.process_expired_logs.stop()
 
         try:

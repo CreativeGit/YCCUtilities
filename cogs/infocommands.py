@@ -85,7 +85,7 @@ class InfoCommands(commands.Cog):
 
     @commands.command(
         brief=' opt<user>',
-        aliases=['ui'],
+        aliases=['ui', 'whois'],
         description='View information about a user. Requires <required-role> or higher.',
         extras=1)
     @commands.guild_only()
