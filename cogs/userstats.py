@@ -79,7 +79,11 @@ class UserStatistics(commands.Cog):
         for entry in self.vc_data_done:
             await self.bot.add_vc_stat(entry[0], entry[1], entry[2], entry[3])
 
-        if self.bot.active_role:
+        try:
+            active_role = self.bot.guild.get_role(self.bot.active_role.id)
+        except AttributeError:
+            active_role = None
+        if active_role:
             all_stats = await self.sorted_activity_data(2592000)
             messages_by_member = all_stats[0]
             vc_time_by_member = all_stats[2]
@@ -95,9 +99,9 @@ class UserStatistics(commands.Cog):
             top_members = set(top_member_ids_1 + top_member_ids_2)
 
             members_in = [await self.bot.get_or_fetch_member(member) for member in top_members if member not in
-                          [member.id for member in self.bot.active_role.members]]
+                          [member.id for member in active_role.members]]
             members_out = [await self.bot.get_or_fetch_member(member) for member in
-                           [member.id for member in self.bot.active_role.members] if member not in top_members]
+                           [member.id for member in active_role.members] if member not in top_members]
 
             for member in members_in:
                 try:

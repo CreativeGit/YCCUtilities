@@ -34,8 +34,8 @@ class SuggestionButtons(ui.View):
         for i in range(2):
             suggestion_embed.remove_field(-1)
 
-        suggestion_embed.add_field(name='Upvotes:', value=f'<:tick:1051065037659312209> {approvals}', inline=True)
-        suggestion_embed.add_field(name='Downvotes:', value=f'<:no:1051064861565657108> {declines}', inline=True)
+        suggestion_embed.add_field(name='Upvotes:', value=f'> {approvals}', inline=True)
+        suggestion_embed.add_field(name='Downvotes:', value=f'> {declines}', inline=True)
 
         await interaction.message.edit(embed=suggestion_embed)
 
@@ -360,8 +360,8 @@ class MiscCommands(commands.Cog):
 
         suggestion_embed.add_field(name='Author:', value=f'{ctx.author.mention} (ID: {ctx.author.id})', inline=False)
         suggestion_embed.add_field(name='Suggestion:', value=suggestion, inline=False)
-        suggestion_embed.add_field(name='Upvotes:', value='<:YTtickYes:705973643053891684> 0', inline=True)
-        suggestion_embed.add_field(name='Downvotes:', value='<:YTtickNo:705973644299599872> 0', inline=True)
+        suggestion_embed.add_field(name='Upvotes:', value='> 0', inline=True)
+        suggestion_embed.add_field(name='Downvotes:', value='> 0', inline=True)
 
         await suggestion_message.edit(embed=suggestion_embed,
                                       view=SuggestionButtons(self.bot, suggestion_message, suggestion_id))
