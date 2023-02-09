@@ -7,7 +7,7 @@ from discord import (
     utils, Embed,
     TextStyle,
     ui, Interaction,
-    Button, Message,
+    Message,
     ButtonStyle,
     Forbidden)
 from discord.ext import commands
@@ -148,6 +148,7 @@ class ModLogsByCaseID:
         await db.close()
 
 
+# Ban Appeal Modals are deprecated
 class BanAppealModal(ui.Modal):
     def __init__(self, bot):
         super().__init__(title='Ban Appeal', timeout=None)
@@ -195,7 +196,7 @@ class BanAppealModal(ui.Modal):
         except (Forbidden, AttributeError):
             await self.bot.send_ephemeral_response(interaction, '❌ Something went wrong. The guild may not be '
                                                                 'accepting ban appeals currently. Try again later.',
-                                                   0xf04a47)
+                                                   0xf04a47)  # #
 
 
 class BanAppealButton(ui.View):
@@ -203,10 +204,7 @@ class BanAppealButton(ui.View):
         super().__init__(timeout=604800)
         self.bot = bot
         self.message = message
-
-    @ui.button(label='Ban Appeal', style=ButtonStyle.grey)
-    async def ban_appeal_button(self, interaction: Interaction, button: Button):
-        await interaction.response.send_modal(BanAppealModal(self.bot))
+        self.add_item(ui.Button(label='Appeal Ban', style=ButtonStyle.grey, url='https://dyno.gg/form/8edeab12/'))
 
     async def on_timeout(self):
         await self.message.edit(view=None)
