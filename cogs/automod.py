@@ -1,6 +1,15 @@
 import logging
 from discord.ext import commands, tasks
-from discord import Message, NotFound, Forbidden, Embed, utils
+from discord import (
+    Message,
+    NotFound,
+    Forbidden,
+    Embed,
+    utils,
+    TextChannel,
+    VoiceChannel,
+    Thread
+)
 from datetime import timedelta
 from asyncio import sleep
 from core.modlogs import ModLogsByUser
@@ -37,6 +46,13 @@ class AutoMod(commands.Cog):
         urls = findall(r'(https?://\S+)', message.content)
         domains = [urlparse(url).netloc for url in urls]
 
+        if isinstance(message.channel, TextChannel) or isinstance(message.channel, VoiceChannel):
+            channel = message.channel
+        elif isinstance(message.channel, Thread):
+            channel = message.channel.parent
+        else:
+            return
+
         if not domains or message.guild != self.bot.guild or self.bot.member_clearance(message.author) > 1:
             return
         elif [domain for domain in domains if domain in self.bot.blacklisted_domains]:
@@ -44,7 +60,7 @@ class AutoMod(commands.Cog):
         elif [role for role in message.author.roles if role in self.bot.immune_roles]:
             return
         elif not [domain for domain in domains if domain not in self.bot.whitelisted_domains] and \
-                message.channel in self.bot.immune_channels:
+                channel in self.bot.immune_channels:
             return
 
         try:

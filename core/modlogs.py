@@ -196,7 +196,7 @@ class BanAppealModal(ui.Modal):
         except (Forbidden, AttributeError):
             await self.bot.send_ephemeral_response(interaction, '❌ Something went wrong. The guild may not be '
                                                                 'accepting ban appeals currently. Try again later.',
-                                                   0xf04a47)  # #
+                                                   0xf04a47)
 
 
 class BanAppealButton(ui.View):
