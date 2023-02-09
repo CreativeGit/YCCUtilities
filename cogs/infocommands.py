@@ -50,7 +50,8 @@ class InfoCommands(commands.Cog):
 
     @commands.command(
         brief='',
-        description='Check the bot\'s current latency.')
+        description='Check the bot\'s current latency.',
+        extras=0)
     @commands.guild_only()
     async def ping(self, ctx: commands.Context):
         await ctx.send(embed=Embed(
@@ -58,7 +59,8 @@ class InfoCommands(commands.Cog):
 
     @commands.command(
         brief='',
-        description='Check the bot\'s current uptime.')
+        description='Check the bot\'s current uptime.',
+        extras=0)
     @commands.guild_only()
     async def uptime(self, ctx: commands.Context):
         await ctx.send(embed=Embed(
@@ -68,7 +70,8 @@ class InfoCommands(commands.Cog):
     @commands.command(
         brief=' opt<user>',
         aliases=['av'],
-        description='View a user\'s global avatar. Requires Community Helper or higher.')
+        description='View a user\'s global avatar. Requires <required-role> or higher.',
+        extras=1)
     @commands.guild_only()
     async def avatar(self, ctx: commands.Context, user: User = None):
         if self.bot.member_clearance(ctx.author) < 1:
@@ -83,7 +86,8 @@ class InfoCommands(commands.Cog):
     @commands.command(
         brief=' opt<user>',
         aliases=['ui'],
-        description='View information about a user. Requires Community Helper or higher.')
+        description='View information about a user. Requires <required-role> or higher.',
+        extras=1)
     @commands.guild_only()
     async def userinfo(self, ctx: commands.Context, user: User = None):
         if self.bot.member_clearance(ctx.author) < 1:
@@ -104,7 +108,7 @@ class InfoCommands(commands.Cog):
 
         user_info_embed.add_field(name='Banned:',
                                   value='**Yes**' if user in [entry.user async for entry in
-                                                              self.bot.guild.bans(limit=None)]
+                                                              self.bot.guild.bans(limit=100)]
                                   else '**No**',
                                   inline=True)
 
@@ -125,12 +129,18 @@ class InfoCommands(commands.Cog):
                                   value=f'<t:{floor(member.joined_at.timestamp())}:F>' if member else '**`None`**',
                                   inline=True)
 
+        perm_level = self.bot.member_clearance(member)
+        user_info_embed.add_field(name='Guild Permission Level:',
+                                  value=f'`Level {perm_level}` **({self.bot.clearance_mapping()[perm_level]})**',
+                                  inline=False)
+
         await ctx.send(embed=user_info_embed)
 
     @commands.command(
         brief='',
         aliases=['si'],
-        description='View information about the guild. Requires Community Helper or higher.')
+        description='View information about the guild. Requires <required-role> or higher.',
+        extras=1)
     @commands.guild_only()
     async def serverinfo(self, ctx: commands.Context):
         if self.bot.member_clearance(ctx.author) < 1:
@@ -190,7 +200,8 @@ class InfoCommands(commands.Cog):
         description='Translate the contents of a message into another language. The default target language is `en` '
                     '(English), and `<message>` can be a message ID, link or just the contents you wish to translate. '
                     'The command can also be invoked whilst replying to another message to translate the contents of '
-                    'that message. Requires Community Helper or higher.')
+                    'that message. Requires <required-role> or higher.',
+        extras=1)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.guild_only()
     async def translate(self, ctx: commands.Context, target: str = 'en', *, message: Union[Message, str] = None):
@@ -229,7 +240,8 @@ class InfoCommands(commands.Cog):
     @commands.command(
         brief=' opt<message>',
         description='"Quote" a message, recreating the contents of the message. You can specify a message ID/link or '
-                    'reply to the message you wish to quote. Requires Community Helper or higher.')
+                    'reply to the message you wish to quote. Requires <required-role> or higher.',
+        extras=1)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.guild_only()
     async def quote(self, ctx, message: Message = None):
@@ -251,7 +263,8 @@ class InfoCommands(commands.Cog):
     @commands.command(
         brief=' <duration> *<reason>',
         description='Set a reminder and have the bot DM you after the specified duration has passed. Requires '
-                    'Community Helper or higher.')
+                    '<required-role> or higher.',
+        extras=1)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.guild_only()
     async def remind(self, ctx, duration: str, *, reminder: str):
@@ -281,7 +294,8 @@ class InfoCommands(commands.Cog):
     @commands.command(
         brief=' *<reason>',
         description='Set your status as AFK. The bot will then notify any user who tries to ping you that you\'re AFK. '
-                    'AFK status is removed when you next send a message. Requires Community Helper or higher.')
+                    'AFK status is removed when you next send a message. Requires <required-role> or higher.',
+        extras=1)
     @commands.bot_has_permissions(manage_nicknames=True)
     @commands.guild_only()
     async def afk(self, ctx: commands.Context, *, reason: str = 'No reason given'):

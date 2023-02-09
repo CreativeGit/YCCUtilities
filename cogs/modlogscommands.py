@@ -83,7 +83,8 @@ class ModLogsCommands(commands.Cog):
 
     @commands.command(
         brief='',
-        description='View your own modlogs history in the guild. Responsible moderators and notes are omitted.')
+        description='View your own modlogs history in the guild. Responsible moderators and notes are omitted.',
+        extras=0)
     @commands.guild_only()
     async def mylogs(self, ctx: commands.Context):
         response = await ctx.send(embed=Embed(
@@ -94,7 +95,8 @@ class ModLogsCommands(commands.Cog):
         brief=' opt<flag>',
         aliases=['mds'],
         description='View all ongoing moderations in the guild. `<flag>` can be used to filter specific actions. '
-                    'Requires Community Helper or higher.')
+                    'Requires <required-role> or higher.',
+        extras=1)
     @commands.guild_only()
     async def moderations(self, ctx: commands.Context, flag: str = None):
         if self.bot.member_clearance(ctx.author) < 1:
@@ -149,7 +151,8 @@ class ModLogsCommands(commands.Cog):
         brief=' opt<user> opt<flag>',
         aliases=['logs'],
         description='View the modlogs history of a specific user. `<flag>` can be used to filter specific actions. '
-                    'Requires Community Helper or higher.')
+                    'Requires <required-role> or higher.',
+        extras=1)
     @commands.guild_only()
     async def modlogs(self, ctx: commands.Context, user: User = None, flag: str = None):
         if self.bot.member_clearance(ctx.author) < 1:
@@ -213,7 +216,8 @@ class ModLogsCommands(commands.Cog):
 
     @commands.command(
         brief=' <case-id>',
-        description='View information about a specific modlogs case. Requires Community Helper or higher.')
+        description='View information about a specific modlogs case. Requires <required-role> or higher.',
+        extras=1)
     @commands.guild_only()
     async def case(self, ctx: commands.Context, case_id: int):
         if self.bot.member_clearance(ctx.author) < 1:
@@ -243,7 +247,8 @@ class ModLogsCommands(commands.Cog):
 
     @commands.command(
         brief=' <case-id> *opt<reason>',
-        description='Edit the reason for a specified modlogs case. Requires Moderator or higher.')
+        description='Edit the reason for a specified modlogs case. Requires <required-role> or higher.',
+        extras=4)
     @commands.guild_only()
     async def reason(self, ctx: commands.Context, case_id: int, *, new_reason: str = 'No reason given.'):
         if self.bot.member_clearance(ctx.author) < 4:
@@ -259,7 +264,8 @@ class ModLogsCommands(commands.Cog):
     @commands.command(
         brief=' <case-id> <duration>',
         description='Edit the duration of an ongoing case. The new duration is measured from the time the modlogs '
-                    'entry was initially created. Requires Moderator or higher.')
+                    'entry was initially created. Requires <required-role> or higher.',
+        extras=4)
     @commands.guild_only()
     async def duration(self, ctx: commands.Context, case_id: int, new_duration: str):
         if self.bot.member_clearance(ctx.author) < 4:
@@ -297,7 +303,8 @@ class ModLogsCommands(commands.Cog):
     @commands.command(
         brief=' <case-id>',
         description='Delete a specified modlogs case. The case will no longer show up in the user\'s modlogs history '
-                    'but can be seen using `deletedlogs`. Requires Senior Staff or higher.')
+                    'but can be seen using `deletedlogs`. Requires <required-role> or higher.',
+        extras=7)
     @commands.guild_only()
     async def delcase(self, ctx: commands.Context, case_id: int):
         if self.bot.member_clearance(ctx.author) < 7:
@@ -319,7 +326,8 @@ class ModLogsCommands(commands.Cog):
     @commands.command(
         brief=' opt<user> opt<flag>',
         aliases=['dellogs'],
-        description='View the deleted modlogs cases for a specified user. Requires Senior Staff or higher.')
+        description='View the deleted modlogs cases for a specified user. Requires <required-role> or higher.',
+        extras=7)
     @commands.guild_only()
     async def deletedlogs(self, ctx: commands.Context, user: User = None, flag: str = None):
         if self.bot.member_clearance(ctx.author) < 7:

@@ -105,6 +105,11 @@ class YCCUtilities(commands.Bot):
             return 1
         return 0
 
+    def clearance_mapping(self):
+        return {0: 'Member', 1: self.helper.mention, 2: self.staff.mention, 3: self.trainee.mention,
+                4: self.moderator.mention, 5: self.senior_mod.mention, 6: self.head_mod.mention,
+                7: self.senior_staff.mention, 8: self.bot_admin.mention, 9: self.admin.mention, 10: 'Owner'}
+
     @staticmethod
     async def embed_error(ctx: commands.Context, message: str):
         embed = Embed(colour=0xf04a47, description=f'❌ {message}')
@@ -395,11 +400,11 @@ class YCCUtilities(commands.Bot):
                                           inline=False)
         await ctx.send(embed=help_menu_embed)
 
-    @staticmethod
-    async def command_help(ctx: commands.Context, command: commands.Command) -> None:
-        command_help_embed = Embed(colour=0x337fd5,
-                                   title=f'{bot.command_prefix}{command.qualified_name} Command',
-                                   description=command.description)
+    async def command_help(self, ctx: commands.Context, command: commands.Command) -> None:
+        command_help_embed = Embed(
+            colour=0x337fd5,
+            title=f'{bot.command_prefix}{command.qualified_name} Command',
+            description=command.description.replace('<required-role>', self.clearance_mapping()[command.extras]))
 
         command_help_embed.set_author(name='Help Menu', icon_url=bot.user.avatar.url)
         command_help_embed.set_footer(text=f'Use {bot.command_prefix}help to view all commands.')

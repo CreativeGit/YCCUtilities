@@ -132,8 +132,9 @@ class MiscCommands(commands.Cog):
     @commands.command(
         brief=' <user> <role>',
         description='Add a persistent role to a user. This role is then automatically re-added if they leave and '
-                    're-join the guild. Note: role is not added when the command is initially used. Requires Moderator '
-                    'or higher.')
+                    're-join the guild. Note: role is not added when the command is initially used. Requires '
+                    '<required-role> or higher.',
+        extras=4)
     @commands.bot_has_permissions(manage_roles=True)
     @commands.guild_only()
     async def addpersrole(self, ctx: commands.Context, user: User, role: Role):
@@ -156,7 +157,8 @@ class MiscCommands(commands.Cog):
 
     @commands.command(
         brief=' <user> <role>',
-        description='Remove a persistent role assignment from a user. Requires Moderator or higher.')
+        description='Remove a persistent role assignment from a user. Requires <required-role> or higher.',
+        extras=4)
     @commands.bot_has_permissions(manage_roles=True)
     @commands.guild_only()
     async def delpersrole(self, ctx: commands.Context, user: User, role: Role):
@@ -172,7 +174,8 @@ class MiscCommands(commands.Cog):
 
     @commands.command(
         brief='',
-        description='View a list of all persistent role assignments. Requires Community Helper or higher.')
+        description='View a list of all persistent role assignments. Requires <required-role> or higher.',
+        extras=1)
     @commands.guild_only()
     async def listpersroles(self, ctx: commands.Context):
         if self.bot.member_clearance(ctx.author) < 1:
@@ -215,7 +218,8 @@ class MiscCommands(commands.Cog):
         description='Add a custom role to a user. The user can then use the `editcustomrole` command to edit the colour'
                     ' and name of this role without requiring the `manage roles` permission. Each user can only have '
                     'a single custom role, and each custom role only one user. Note: role is not added when the '
-                    'command is initially used. Requires Moderator or higher.')
+                    'command is initially used. Requires <required-role> or higher.',
+        extras=4)
     @commands.bot_has_permissions(manage_roles=True)
     @commands.guild_only()
     async def addcustomrole(self, ctx: commands.Context, user: User, role: Role):
@@ -240,7 +244,8 @@ class MiscCommands(commands.Cog):
 
     @commands.command(
         brief=' <user> <role>',
-        description='Remove a custom role assignment from a user. Requires Moderator or higher.')
+        description='Remove a custom role assignment from a user. Requires <required-role> or higher.',
+        extras=4)
     @commands.bot_has_permissions(manage_roles=True)
     @commands.guild_only()
     async def delcustomrole(self, ctx: commands.Context, user: User, role: Role):
@@ -257,7 +262,8 @@ class MiscCommands(commands.Cog):
 
     @commands.command(
         brief='',
-        description='View a list of all custom role assignments. Requires Community Helper or higher.')
+        description='View a list of all custom role assignments. Requires <required-role> or higher.',
+        extras=1)
     @commands.guild_only()
     async def listcustomroles(self, ctx: commands.Context):
         if self.bot.member_clearance(ctx.author) < 1:
@@ -298,7 +304,8 @@ class MiscCommands(commands.Cog):
     @commands.command(
         brief=' <hex> *<name>',
         description='Edit a custom role assigned by a staff member. `<hex>` should be a 6-digit hexadecimal number, '
-                    'with or without the leading `#`.')
+                    'with or without the leading `#`.',
+        extras=0)
     @commands.cooldown(1, 60, commands.BucketType.member)
     @commands.bot_has_permissions(manage_roles=True)
     @commands.guild_only()
@@ -329,7 +336,8 @@ class MiscCommands(commands.Cog):
     @commands.command(
         brief=' *<suggestion>',
         description='Submit a suggestion to the guild. This is then posted as an embed in the guild\'s suggestions '
-                    'channel where members can vote, and staff members can approve or decline the suggestion.')
+                    'channel where members can vote, and staff members can approve or decline the suggestion.',
+        extras=0)
     @commands.cooldown(1, 21600, commands.BucketType.member)
     @commands.guild_only()
     async def suggest(self, ctx: commands.Context, *, suggestion: str):
@@ -361,7 +369,8 @@ class MiscCommands(commands.Cog):
 
     @commands.command(
         brief=' <suggestion-id> *opt<reason>',
-        description='Approve a pending suggestion. Requires Senior Staff or higher.')
+        description='Approve a pending suggestion. Requires <required-role> or higher.',
+        extras=7)
     @commands.guild_only()
     async def approve(self, ctx: commands.Context, suggestion_id: int, *, response: str = 'No reason given.'):
         if self.bot.member_clearance(ctx.author) < 7:
@@ -391,7 +400,8 @@ class MiscCommands(commands.Cog):
 
     @commands.command(
         brief=' <suggestion-id> *opt<reason>',
-        description='Decline a pending suggestion. Requires Senior Staff or higher.')
+        description='Decline a pending suggestion. Requires <required-role> or higher.',
+        extras=7)
     @commands.guild_only()
     async def decline(self, ctx: commands.Context, suggestion_id: int, *, response: str = 'No reason given.'):
         if self.bot.member_clearance(ctx.author) < 7:
@@ -421,7 +431,8 @@ class MiscCommands(commands.Cog):
 
     @commands.command(
         brief=' <text-channel> <winners> <duration> *<description>',
-        description='Hosts a giveaway in the specified channel. Requires Senior Staff or higher.')
+        description='Hosts a giveaway in the specified channel. Requires <required-role> or higher.',
+        extras=7)
     @commands.guild_only()
     async def giveaway(self, ctx: commands.Context, channel: TextChannel, winners: int, duration: str, *, desc: str):
         if self.bot.member_clearance(ctx.author) < 7:

@@ -28,7 +28,8 @@ class ConfigCommands(commands.Cog):
     @commands.command(
         brief=' <shortcut> *<response>',
         description='Add a custom FAQ command. The bot will then send the specified response when the command is used. '
-                    'Requires Head Mod or higher. The FAQ command itself requires Community Helper or higher.')
+                    'Requires <required-role> or higher. The FAQ command itself requires Community Helper or higher.',
+        extras=6)
     @commands.guild_only()
     async def addfaq(self, ctx: commands.Context, shortcut: str, *, response: str):
         if self.bot.member_clearance(ctx.author) < 6:
@@ -43,7 +44,8 @@ class ConfigCommands(commands.Cog):
 
     @commands.command(
         brief=' <shortcut>',
-        description='Remove an existing FAQ command. Requires Head Mod or higher.')
+        description='Remove an existing FAQ command. Requires <required-role> or higher.',
+        extras=6)
     @commands.guild_only()
     async def delfaq(self, ctx: commands.Context, shortcut: str):
         if self.bot.member_clearance(ctx.author) < 6:
@@ -57,7 +59,8 @@ class ConfigCommands(commands.Cog):
 
     @commands.command(
         brief='',
-        description='View a list of all FAQ commands. Requires Community Helper or higher.')
+        description='View a list of all FAQ commands. Requires <required-role> or higher.',
+        extras=1)
     @commands.guild_only()
     async def faqlist(self, ctx: commands.Context):
         if self.bot.member_clearance(ctx.author) < 1:
@@ -97,8 +100,9 @@ class ConfigCommands(commands.Cog):
         brief=' <command-type> <shortcut> <duration> *<reason>',
         description='Set up a custom moderation command. A custom command can be a `warn`, `mute`, `kick` or `ban`. '
                     'A specified duration is still required while creating a `warn` or `kick` command for command '
-                    'parsing reasons, but will be disregarded. Requires Senior Staff or higher. The custom command '
-                    'itself corresponds to the built-in commands (a `mute` command requires Trainee Mod or higher).')
+                    'parsing reasons, but will be disregarded. Requires <required-role> or higher. The custom command '
+                    'itself corresponds to the built-in commands in terms of the required role.',
+        extras=7)
     @commands.guild_only()
     async def addcustomcommand(self, ctx: commands.Context, logtype: str, shortcut: str, duration: str, *, reason: str):
         if self.bot.member_clearance(ctx.author) < 7:
@@ -139,7 +143,8 @@ class ConfigCommands(commands.Cog):
 
     @commands.command(
         brief=' <shortcut>',
-        description='Removes an existing custom command. Requires Senior Staff or higher.')
+        description='Removes an existing custom command. Requires <required-role> or higher.',
+        extras=7)
     @commands.guild_only()
     async def delcustomcommand(self, ctx: commands.Context, shortcut: str):
         if self.bot.member_clearance(ctx.author) < 7:
@@ -153,7 +158,8 @@ class ConfigCommands(commands.Cog):
 
     @commands.command(
         brief='',
-        description='View a list of all custom commands. Requires Community Helper or higher.')
+        description='View a list of all custom commands. Requires <required-role> or higher.',
+        extras=1)
     @commands.guild_only()
     async def customcommandlist(self, ctx: commands.Context):
         if self.bot.member_clearance(ctx.author) < 1:
@@ -196,7 +202,8 @@ class ConfigCommands(commands.Cog):
     @commands.command(
         brief=' <blacklist> <user>',
         description='Add a user to one of the bot\'s blacklists. These can be `suggest`, `appeal` or `trivia` and will '
-                    'prevent the user from using the respective feature. Requires Senior Mod or higher.')
+                    'prevent the user from using the respective feature. Requires <required-role> or higher.',
+        extras=5)
     @commands.guild_only()
     async def blacklist(self, ctx: commands.Context, blacklist: str, user: User):
         if self.bot.member_clearance(ctx.author) < 5 or \
@@ -214,7 +221,8 @@ class ConfigCommands(commands.Cog):
     @commands.command(
         brief=' <blacklist> <user>',
         description='Remove a user to one of the bot\'s blacklists. These can be `suggest`, `appeal` or `trivia` and '
-                    'will allow the user to use the respective feature again. Requires Senior Mod or higher.')
+                    'will allow the user to use the respective feature again. Requires <required-role> or higher.',
+        extras=5)
     @commands.guild_only()
     async def unblacklist(self, ctx: commands.Context, blacklist: str, user: User):
         if self.bot.member_clearance(ctx.author) < 5:
@@ -231,7 +239,8 @@ class ConfigCommands(commands.Cog):
     @commands.command(
         brief=' *<message>',
         description='Set a custom welcome message that will be sent when a new member joins the guild. Type `<member>` '
-                    'where you want the new member to be mentioned.')
+                    'where you want the new member to be mentioned. Requires <required-role> or higher.',
+        extras=6)
     @commands.guild_only()
     async def setwelcome(self, ctx: commands.Context, *, message):
         if self.bot.member_clearance(ctx.author) < 6:
@@ -245,7 +254,8 @@ class ConfigCommands(commands.Cog):
         description='Posts an embedded message in the specified text channel. You can customise an embedded message '
                     '**[here](https://discohook.org/)**, copy the JSON data and save it as a `.json` file. This file '
                     'should be attached to your message whilst invoking the command. Message content and attachments '
-                    'are not supported. Requires Senior Staff or higher.')
+                    'are not supported. Requires <required-role> or higher.',
+        extras=7)
     async def embed(self, ctx: commands.Context, channel: TextChannel = None):
         if self.bot.member_clearance(ctx.author) < 7:
             return
@@ -263,7 +273,8 @@ class ConfigCommands(commands.Cog):
                     'attached. You can customise an embedded message **[here](https://discohook.org/)**, copy the '
                     'JSON data and save it as a `.json` file. This file should be attached to your message whilst '
                     'invoking the command. Message content and attachments are not currently supported. Requires '
-                    'Senior Staff or higher.')
+                    '<required-role> or higher.',
+        extras=7)
     @commands.guild_only()
     async def rulesetup(self, ctx: commands.Context, channel: TextChannel = None):
         if self.bot.member_clearance(ctx.author) < 7:
@@ -282,8 +293,8 @@ class ConfigCommands(commands.Cog):
                     'attached. These buttons can be pressed by any user to add/remove their respective role. You can '
                     'customise an embedded message **[here](https://discohook.org/)**, copy the JSON data and save it '
                     'as a `.json` file. This file should be attached to your message whilst invoking the command. '
-                    'Message content and attachments are not currently supported. Requires Senior Staff or higher. '
-                    '(Note: these buttons are not persistent)')
+                    'Message content and attachments are not currently supported. Requires <required-role> or higher. ',
+        extras=7)
     @commands.guild_only()
     async def rolesetup(self, ctx: commands.Context, channel: TextChannel, *, roles: str):
         if self.bot.member_clearance(ctx.author) < 7:
@@ -308,8 +319,9 @@ class ConfigCommands(commands.Cog):
     @commands.command(
         brief=' *<guild-name>',
         description='Resets the guild\'s current data. Useful as a failsafe if a deleted object ID somehow gets '
-                    'trapped inside the database. Requires Administrator or higher. Modlogs, suggestions and blacklists'
-                    ' are unaffected.')
+                    'trapped inside the database. Requires <required-role> or higher. Modlogs, suggestions and '
+                    'blacklists are unaffected.',
+        extras=9)
     @commands.guild_only()
     async def wipe(self, ctx: commands.Context, *, guild_name: str):
         if self.bot.member_clearance(ctx.author) < 9:
@@ -323,7 +335,8 @@ class ConfigCommands(commands.Cog):
 
     @commands.command(
         brief='',
-        description='Closes the bot\'s connection to Discord. Requires command author to be a guild/bot owner.')
+        description='Closes the bot\'s connection to Discord. Requires command author to be a guild/bot owner.',
+        extras=10)
     @commands.guild_only()
     async def terminate(self, ctx: commands.Context):
         if self.bot.member_clearance(ctx.author) >= 10:

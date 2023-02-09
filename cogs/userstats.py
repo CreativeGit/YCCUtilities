@@ -145,7 +145,8 @@ class UserStatistics(commands.Cog):
 
     @commands.command(
         brief=' opt<time-elapsed>',
-        description='View the activity statistics of the top user\'s and channels in the guild.')
+        description='View the activity statistics of the top user\'s and channels in the guild.',
+        extras=0)
     @commands.cooldown(1, 60, commands.BucketType.member)
     @commands.guild_only()
     async def topstats(self, ctx: commands.Context, duration_since: str = '30d'):
@@ -185,7 +186,8 @@ class UserStatistics(commands.Cog):
 
     @commands.command(
         brief=' opt<user> opt<time-elapsed>',
-        description='View your own or another user\'s activity statistics in the guild.')
+        description='View your own or another user\'s activity statistics in the guild.',
+        extras=0)
     @commands.cooldown(1, 60, commands.BucketType.member)
     @commands.guild_only()
     async def stats(self, ctx: commands.Context, user: User = None, duration_since: str = '30d'):
@@ -234,7 +236,8 @@ class UserStatistics(commands.Cog):
 
     @commands.command(
         brief=' opt<user> opt<time-elapsed>',
-        description='View the modstats of a user. Requires Head Mod or higher.')
+        description='View the modstats of a user. Requires <required-role> or higher.',
+        extras=6)
     @commands.guild_only()
     async def modstats(self, ctx: commands.Context, user: User = None, duration_since: str = '30d'):
         if self.bot.member_clearance(ctx.author) < 6:

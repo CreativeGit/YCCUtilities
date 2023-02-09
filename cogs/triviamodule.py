@@ -48,7 +48,8 @@ class TriviaModule(commands.Cog):
 
     @commands.command(
         brief='',
-        description='Starts the trivia event loop. Requires Senior Staff or higher.')
+        description='Starts the trivia event loop. Requires <required-role> or higher.',
+        extras=7)
     @commands.guild_only()
     async def start(self, ctx: commands.Context):
         if self.bot.member_clearance(ctx.author) < 7:
@@ -58,7 +59,8 @@ class TriviaModule(commands.Cog):
 
     @commands.command(
         brief='',
-        description='Stops the trivia event loop. Requires Senior Staff or higher.')
+        description='Stops the trivia event loop. Requires <required-role> or higher.',
+        extras=7)
     @commands.guild_only()
     async def stop(self, ctx: commands.Context):
         if self.bot.member_clearance(ctx.author) < 7:

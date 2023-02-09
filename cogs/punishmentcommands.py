@@ -24,7 +24,8 @@ class PunishmentCommands(commands.Cog):
     @commands.command(
         brief=' <member>',
         aliases=['dc'],
-        description='Converts a member\'s nickname into standard English font. Requires Community Helper or higher.')
+        description='Converts a member\'s nickname into standard English font. Requires <required-role> or higher.',
+        extras=1)
     @commands.bot_has_permissions(manage_nicknames=True)
     @commands.guild_only()
     async def decancer(self, ctx: commands.Context, member: Member):
@@ -38,7 +39,8 @@ class PunishmentCommands(commands.Cog):
     @commands.command(
         brief=' <member>',
         aliases=['mn'],
-        description='Assigns a randomly-generated nickname to a member. Requires Community Helper or higher.')
+        description='Assigns a randomly-generated nickname to a member. Requires <required-role> or higher.',
+        extras=1)
     @commands.bot_has_permissions(manage_nicknames=True)
     @commands.guild_only()
     async def modnick(self, ctx: commands.Context, member: Member):
@@ -51,8 +53,9 @@ class PunishmentCommands(commands.Cog):
     @commands.command(
         brief=' <user> *opt<reason>',
         aliases=['n'],
-        description='Add a note for a user. This will appear in their modlogs history. Requires Community Helper or '
-                    'higher.')
+        description='Add a note for a user. This will appear in their modlogs history. Requires <required-role> or '
+                    'higher.',
+        extras=1)
     @commands.guild_only()
     async def note(self, ctx: commands.Context, user: User, *, reason: str = 'No reason given.'):
         member = await self.bot.get_or_fetch_member(user.id)
@@ -66,7 +69,8 @@ class PunishmentCommands(commands.Cog):
     @commands.command(
         brief=' <member> *opt<reason>',
         description='Attempts to send a private message to a member. This message will appear in their modlogs history.'
-                    ' Requires Community Helper or higher.')
+                    ' Requires <required-role> or higher.',
+        extras=1)
     @commands.cooldown(1, 15, commands.BucketType.guild)
     @commands.guild_only()
     async def dm(self, ctx: commands.Context, member: Member, *, reason: str = 'No reason given.'):
@@ -87,8 +91,9 @@ class PunishmentCommands(commands.Cog):
     @commands.command(
         brief=' <user> *opt<reason>',
         aliases=['w'],
-        description='Formally warns a user, creates a new modlogs entry and DMs them the reason. Requires Community '
-                    'Helper or higher.')
+        description='Formally warns a user, creates a new modlogs entry and DMs them the reason. Requires '
+                    '<required-role> or higher.',
+        extras=1)
     @commands.guild_only()
     async def warn(self, ctx: commands.Context, user: User, *, reason: str = 'No reason given.'):
         member = await self.bot.get_or_fetch_member(user.id)
@@ -109,11 +114,12 @@ class PunishmentCommands(commands.Cog):
         brief=' <member> *opt<reason>',
         aliases=['k'],
         description='Kicks a member from the guild, creates a new modlogs entry and DMs them the reason. Requires '
-                    'Trainee Mod or higher.')
+                    '<required-role> or higher.',
+        extras=3)
     @commands.bot_has_permissions(kick_members=True)
     @commands.guild_only()
     async def kick(self, ctx: commands.Context, member: Member, *, reason: str = 'No reason given.'):
-        if self.bot.member_clearance(member) or self.bot.member_clearance(ctx.author) < 2:
+        if self.bot.member_clearance(member) or self.bot.member_clearance(ctx.author) < 3:
             return
 
         user_logs = ModLogsByUser(member)
@@ -132,12 +138,13 @@ class PunishmentCommands(commands.Cog):
         brief=' <user> <duration> *opt<reason>',
         aliases=['m'],
         description='Puts a user in time-out, creates a new modlogs entry and DMs them the reason. Requires '
-                    'Trainee Mod or higher.')
+                    '<required-role> or higher.',
+        extras=3)
     @commands.bot_has_permissions(moderate_members=True)
     @commands.guild_only()
     async def mute(self, ctx: commands.Context, user: User, duration: str, *, reason: str = 'No reason given.'):
         member = await self.bot.get_or_fetch_member(user.id)
-        if self.bot.member_clearance(member) or self.bot.member_clearance(ctx.author) < 2:
+        if self.bot.member_clearance(member) or self.bot.member_clearance(ctx.author) < 3:
             return
         elif member and member.is_timed_out():
             await self.bot.embed_error(ctx, f'{user.mention} is already muted.')
@@ -169,7 +176,8 @@ class PunishmentCommands(commands.Cog):
         brief=' <user> <duration> *opt<reason>',
         aliases=['b'],
         description='Bans a user from the guild, creates a new modlogs entry and DMs them the reason. Duration can be '
-                    '`perm` to make the ban permanent (lasts a very long time!). Requires Moderator or higher.')
+                    '`perm` to make the ban permanent (lasts a very long time!). Requires <required-role> or higher.',
+        extras=4)
     @commands.bot_has_permissions(ban_members=True)
     @commands.guild_only()
     async def ban(self, ctx: commands.Context, user: User, duration: str, *, reason: str = 'No reason given.'):
@@ -212,7 +220,8 @@ class PunishmentCommands(commands.Cog):
         brief=' <user> <duration> <channel> *opt<reason>',
         aliases=['cb'],
         description='Blocks a user from viewing a specified guild channel, creates a new modlogs entry and DMs them '
-                    'the reason. Requires Moderator or higher.')
+                    'the reason. Requires <required-role> or higher.',
+        extras=4)
     @commands.bot_has_permissions(manage_roles=True)
     @commands.guild_only()
     async def channelban(self, ctx: commands.Context, user: User, channel: abc.GuildChannel, duration: str, *,
@@ -257,7 +266,8 @@ class PunishmentCommands(commands.Cog):
         brief=' <member> *opt<reason>',
         aliases=['um'],
         description='Unmutes a member who\'s in time-out, creates a new modlogs entry and DMs them the reason. Requires'
-                    ' Senior Mod or higher.')
+                    ' <required-role> or higher.',
+        extras=5)
     @commands.bot_has_permissions(moderate_members=True)
     @commands.guild_only()
     async def unmute(self, ctx: commands.Context, member: Member, *, reason: str = 'No reason given.'):
@@ -286,7 +296,8 @@ class PunishmentCommands(commands.Cog):
         brief=' <user> *opt<reason>',
         aliases=['ub'],
         description='Unbans a user from the guild, creates a new modlogs entry and DMs them the reason. Requires '
-                    'Senior Mod or higher.')
+                    '<required-role> or higher.',
+        extras=5)
     @commands.bot_has_permissions(ban_members=True)
     @commands.guild_only()
     async def unban(self, ctx: commands.Context, user: User, *, reason: str = 'No reason given.'):
@@ -315,7 +326,8 @@ class PunishmentCommands(commands.Cog):
         brief=' <user> <channel> *opt<reason>',
         aliases=['ucb'],
         description='Unblocks a user from a specified guild channel, creates a new modlogs entry and DMs them the '
-                    'reason. Requires Senior Mod or higher.')
+                    'reason. Requires <required-role> or higher.',
+        extras=5)
     @commands.bot_has_permissions(manage_roles=True)
     @commands.guild_only()
     async def unchannelban(self, ctx: commands.Context, user: User, channel: abc.GuildChannel, *,
@@ -348,7 +360,8 @@ class PunishmentCommands(commands.Cog):
         brief=' <check> <amount>',
         description='Purge the most recent `X` messages that pass a specific check. This check can be a specified user,'
                     ' `bots` to target all bot messages, `self` to target this bot\'s own messages or `all` to target '
-                    'all messages. Requires Moderator or higher.')
+                    'all messages. Requires <required-role> or higher.',
+        extras=4)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.bot_has_permissions(manage_messages=True, read_message_history=True)
     @commands.guild_only()
@@ -425,8 +438,9 @@ class PunishmentCommands(commands.Cog):
     @commands.command(
         brief=' <duration>',
         aliases=['sm'],
-        description='Sets a slow-mode timer for the current channel. Type `off` to disable entirely. Requires Senior '
-                    'Mod or higher.')
+        description='Sets a slow-mode timer for the current channel. Type `off` to disable entirely. Requires '
+                    '<required-role> or higher.',
+        extras=5)
     @commands.bot_has_permissions(manage_channels=True)
     @commands.guild_only()
     async def slowmode(self, ctx: commands.Context, duration: str):
@@ -448,8 +462,9 @@ class PunishmentCommands(commands.Cog):
 
     @commands.command(
         brief=' opt<channel>',
-        description='Locks a channel, preventing all non-staff users from communicating in it. Requires Senior Mod '
-                    'or higher.')
+        description='Locks a channel, preventing all non-staff users from communicating in it. Requires <required-role>'
+                    ' or higher.',
+        extras=5)
     @commands.bot_has_permissions(manage_roles=True)
     @commands.guild_only()
     async def lock(self, ctx: commands.Context, channel: abc.GuildChannel = None):
@@ -491,7 +506,8 @@ class PunishmentCommands(commands.Cog):
     @commands.command(
         brief=' opt<channel>',
         description='Unlocks a locked channel, reverting all permission overwrites to their previous states. Requires '
-                    'Senior Mod or higher.')
+                    '<required-role> or higher.',
+        extras=5)
     @commands.bot_has_permissions(manage_roles=True)
     @commands.guild_only()
     async def unlock(self, ctx: commands.Context, channel: abc.GuildChannel = None):
@@ -525,7 +541,8 @@ class PunishmentCommands(commands.Cog):
     @commands.command(
         brief='',
         description='Puts the guild under lockdown, denying the `view channel` permission for the `@everyone` role in '
-                    'all public channels. Requires Head Mod or higher.')
+                    'all public channels. Requires <required-role> or higher.',
+        extras=6)
     @commands.bot_has_permissions(manage_roles=True)
     @commands.guild_only()
     async def lockdown(self, ctx: commands.Context):
@@ -567,7 +584,8 @@ class PunishmentCommands(commands.Cog):
     @commands.command(
         brief='',
         description='Removes the guild from lockdown, reverting all affected channel\'s permission overwrites to their '
-                    'original states.')
+                    'original states. Requires <required-role> or higher.',
+        extras=6)
     @commands.bot_has_permissions(manage_roles=True)
     @commands.guild_only()
     async def lockdownend(self, ctx: commands.Context):
