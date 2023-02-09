@@ -125,6 +125,8 @@ class UserStatistics(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):
+        if member.bot:
+            return
         if before.channel == after.channel:
             return
         if not before.channel:

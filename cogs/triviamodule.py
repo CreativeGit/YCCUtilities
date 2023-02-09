@@ -40,7 +40,7 @@ class TriviaModule(commands.Cog):
     def generate_question(self) -> None:
         question_data = self.api.request(1, type_=Type.Multiple_Choice)['results'][0]
         while 'which' in question_data['question'].lower() or 'following' in question_data['question'].lower():
-            question_data = self.api.request(1, type_=Type.Multiple_Choice)
+            question_data = self.api.request(1, type_=Type.Multiple_Choice)['results'][0]
         self.current_question = question_data['question']
         self.current_answer = question_data['correct_answer']
         self.current_difficulty = question_data['difficulty']
