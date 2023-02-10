@@ -76,7 +76,10 @@ class PageButtons(ui.View):
     async def _stop(self, interaction: Interaction, button: Button):
         self.stop()
         await interaction.response.defer()
-        await interaction.message.delete()
+        if self.message:
+            await self.message.delete()
+        elif self.interaction:
+            await self.interaction.delete_original_response()
 
     async def interaction_check(self, interaction: Interaction):
         if self.author_id:
