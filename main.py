@@ -69,9 +69,6 @@ class YCCUtilities(commands.Bot):
 
         self.immune_roles = []
 
-        self.blacklisted_domains = os.getenv('BLACKLISTED_DOMAINS').split(',')
-        self.whitelisted_domains = os.getenv('WHITELISTED_DOMAINS').split(',')
-
         self.staff_form = os.getenv('STAFF_FORM')
 
         self.db = None
@@ -172,6 +169,8 @@ class YCCUtilities(commands.Bot):
         await self.db.execute('create table if not exists modstats (user_id integer, log_type text, logged_at integer)')
 
         await self.db.execute('create table if not exists pers_role_views (role_ids text)')
+
+        await self.db.execute('create table if not exists domains (whitelisted text, blacklisted text)')
 
         await self.db.commit()
 
@@ -341,6 +340,41 @@ class YCCUtilities(commands.Bot):
         cursor = await self.db.execute('SELECT * FROM pers_role_views')
         data = await cursor.fetchall()
         return data
+
+    async def domain_data(self):
+        cursor = await self.db.execute('SELECT whitelisted, blacklisted FROM domains')
+        data = await cursor.fetchone()
+        if not data:
+            data = ('[]', '[]')
+            await self.db.execute('INSERT INTO domains (whitelisted, blacklisted) VALUES (?, ?)', (dumps([]),) * 2)
+            await self.db.commit()
+        return l_e(data[0]), l_e(data[1])
+
+    async def domain_wl(self, domain: str):
+        whitelist = (await self.domain_data())[0]
+        blacklist = (await self.domain_data())[1]
+        if domain in whitelist:
+            whitelist.remove(domain)
+        else:
+            whitelist.append(domain)
+            if domain in blacklist:
+                blacklist.remove(domain)
+        await self.db.execute(f'UPDATE domains SET whitelisted = ?, blacklisted = ?',
+                              (dumps(whitelist), dumps(blacklist)))
+        await self.db.commit()
+
+    async def domain_bl(self, domain: str):
+        blacklist = (await self.domain_data())[1]
+        whitelist = (await self.domain_data())[0]
+        if domain in blacklist:
+            blacklist.remove(domain)
+        else:
+            blacklist.append(domain)
+            if domain in whitelist:
+                whitelist.remove(domain)
+        await self.db.execute(f'UPDATE domains SET whitelisted = ?, blacklisted = ?',
+                              (dumps(whitelist), dumps(blacklist)))
+        await self.db.commit()
 
     async def get_owners(self):
         return [await self.fetch_user(user_id) for user_id in self.owner_ids]

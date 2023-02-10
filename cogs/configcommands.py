@@ -327,10 +327,10 @@ class ConfigCommands(commands.Cog):
         urls_embed = Embed(colour=0x337fd5)
         urls_embed.set_author(name='All Domains', icon_url=self.bot.user.avatar)
         urls_embed.add_field(name='Whitelisted Domains:',
-                             value=', '.join([f'`{domain}`' for domain in self.bot.whitelisted_domains]),
+                             value=', '.join([f'`{domain}`' for domain in (await self.bot.domain_data())[0]]),
                              inline=False)
         urls_embed.add_field(name='Blacklisted Domains:',
-                             value=', '.join([f'`{domain}`' for domain in self.bot.blacklisted_domains]),
+                             value=', '.join([f'`{domain}`' for domain in (await self.bot.domain_data())[1]]),
                              inline=False)
         await ctx.send(embed=urls_embed)
 
@@ -342,15 +342,8 @@ class ConfigCommands(commands.Cog):
     async def wldomain(self, ctx: commands.Context, *, domain: str):
         if self.bot.member_clearance(ctx.author) < 5:
             return
-        if domain not in self.bot.whitelisted_domains:
-            self.bot.whitelisted_domains.append(domain)
-            if domain in self.bot.blacklisted_domains:
-                self.bot.blacklisted_domains.remove(domain)
-            message = f'`{domain}` has been whitelisted.'
-        else:
-            self.bot.whitelisted_domains.remove(domain)
-            message = f'`{domain}` has been unwhitelisted.'
-        await self.bot.embed_success(ctx, message)
+        await self.bot.domain_wl(domain)
+        await self.bot.embed_success(ctx, 'Domain whitelist updated.')
 
     @commands.command(
         brief=' *<domain>',
@@ -360,15 +353,8 @@ class ConfigCommands(commands.Cog):
     async def bldomain(self, ctx: commands.Context, *, domain: str):
         if self.bot.member_clearance(ctx.author) < 5:
             return
-        if domain not in self.bot.blacklisted_domains:
-            self.bot.blacklisted_domains.append(domain)
-            if domain in self.bot.whitelisted_domains:
-                self.bot.whitelisted_domains.remove(domain)
-            message = f'`{domain}` has been blacklisted.'
-        else:
-            self.bot.blacklisted_domains.remove(domain)
-            message = f'`{domain}` has been unblacklisted.'
-        await self.bot.embed_success(ctx, message)
+        await self.bot.domain_bl(domain)
+        await self.bot.embed_success(ctx, 'Domain blacklist updated.')
 
     @commands.command(
         brief=' *<guild-name>',
