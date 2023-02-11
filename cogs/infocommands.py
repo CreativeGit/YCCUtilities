@@ -98,7 +98,7 @@ class InfoCommands(commands.Cog):
 
         bool_dict = {True: '**Yes**', False: '**No**'}
 
-        user_info_embed = Embed(colour=0x337fd5, title=user)
+        user_info_embed = Embed(colour=0x337fd5, title=user, description=user.mention)
 
         user_info_embed.set_author(name='User Info', icon_url=self.bot.user.avatar.url)
         user_info_embed.set_thumbnail(url=user.avatar.url if user.avatar else user.default_avatar.url)
@@ -308,7 +308,6 @@ class InfoCommands(commands.Cog):
             pass
         await sleep(2)
         self.afk_mapping.update({ctx.author: reason})
-        print(self.afk_mapping)
 
 
 async def setup(bot):

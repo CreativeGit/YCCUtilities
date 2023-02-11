@@ -3,7 +3,11 @@ from discord.ext import commands
 from discord import (
     Embed,
     User,
-    TextChannel)
+    TextChannel,
+    NotFound,
+    HTTPException,
+    Forbidden
+)
 from datetime import timedelta
 from core.pageviewer import PageButtons
 from core.duration import DurationConverter
@@ -315,6 +319,30 @@ class ConfigCommands(commands.Cog):
             await channel.send(embeds=[emb for emb in embeds], view=RolesView(self.bot, role_list))
             await self.bot.add_pers_role_view(role_list)
             await self.bot.embed_success(ctx, 'Embed posted!')
+
+    @commands.command(
+        brief=' <text-channel> <message-id>',
+        description='Edits an embedded message sent my the bot, and replaces it with the new embed(s) provided. '
+                    'Requires <required-role> or higher.',
+        extras=7)
+    @commands.guild_only()
+    async def edit(self, ctx: commands.Context, channel: TextChannel, message_id: int):
+        if self.bot.member_clearance(ctx.author) < 7:
+            return
+
+        try:
+            message = await channel.fetch_message(message_id)
+        except (NotFound, Forbidden, HTTPException):
+            await self.bot.embed_error(ctx, 'Message not found.')
+            return
+
+        embeds = await self.parse_embed_json(ctx)
+        if embeds:
+            try:
+                await message.edit(embeds=embeds)
+                await self.bot.embed_success(ctx, 'Message edited.')
+            except Forbidden:
+                await self.bot.embed_error(ctx, 'Could not edit message.')
 
     @commands.command(
         brief='',

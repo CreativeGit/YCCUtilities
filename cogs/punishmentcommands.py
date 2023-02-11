@@ -177,12 +177,12 @@ class PunishmentCommands(commands.Cog):
         aliases=['b'],
         description='Bans a user from the guild, creates a new modlogs entry and DMs them the reason. Duration can be '
                     '`perm` to make the ban permanent (lasts a very long time!). Requires <required-role> or higher.',
-        extras=4)
+        extras=3)
     @commands.bot_has_permissions(ban_members=True)
     @commands.guild_only()
     async def ban(self, ctx: commands.Context, user: User, duration: str, *, reason: str = 'No reason given.'):
         member = await self.bot.get_or_fetch_member(user.id)
-        if self.bot.member_clearance(member) or self.bot.member_clearance(ctx.author) < 4:
+        if self.bot.member_clearance(member) or self.bot.member_clearance(ctx.author) < 3:
             return
         elif not member and user in [entry.user async for entry in self.bot.guild.bans()]:
             await self.bot.embed_error(ctx, f'{user.mention} is already banned.')

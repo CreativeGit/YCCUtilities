@@ -140,8 +140,8 @@ class MiscCommands(commands.Cog):
     async def addpersrole(self, ctx: commands.Context, user: User, role: Role):
         if self.bot.member_clearance(ctx.author) < 4:
             return
-        elif role > (await self.bot.bot_member()).top_role or role == self.bot.guild.premium_subscriber_role or \
-                role == self.bot.guild.default_role:
+        elif role >= (await self.bot.bot_member()).top_role or role == self.bot.guild.premium_subscriber_role or \
+                role == self.bot.guild.default_role or role >= ctx.author.top_role:
             await self.bot.embed_error(ctx, 'Pick another role.')
             return
 
@@ -226,7 +226,7 @@ class MiscCommands(commands.Cog):
         if self.bot.member_clearance(ctx.author) < 4:
             return
         elif role > (await self.bot.bot_member()).top_role or role == self.bot.guild.premium_subscriber_role or \
-                role == self.bot.guild.default_role:
+                role == self.bot.guild.default_role or role >= ctx.author.top_role:
             await self.bot.embed_error(ctx, 'Pick another role.')
             return
 

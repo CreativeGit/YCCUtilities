@@ -99,7 +99,7 @@ class EventListeners(commands.Cog):
                     await member.kick()
 
                 elif command[1] == 'Ban':
-                    if self.bot.member_clearance(ctx.author) < 4:
+                    if self.bot.member_clearance(ctx.author) < 3:
                         return
 
                     lasts_until = floor(utils.utcnow().timestamp() + command[3])
