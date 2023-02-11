@@ -32,7 +32,8 @@ class PunishmentCommands(commands.Cog):
         if self.bot.member_clearance(member) or self.bot.member_clearance(ctx.author) < 1:
             return
 
-        new_nickname = normalize('NFKD', member.nick).encode('ascii', 'ignore').decode('utf-8')
+        new_nickname = normalize(
+            'NFKD', member.nick if member.nick else member.name).encode('ascii', 'ignore').decode('utf-8')
         await member.edit(nick=new_nickname)
         await self.bot.embed_success(ctx, f'Changed {member.mention}\'s nickname.')
 
