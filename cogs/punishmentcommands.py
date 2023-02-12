@@ -33,7 +33,7 @@ class PunishmentCommands(commands.Cog):
             return
 
         new_nickname = normalize(
-            'NFKD', member.nick if member.nick else member.name).encode('ascii', 'ignore').decode('utf-8')
+            'NFKD', member.display_name).encode('ascii', 'ignore').decode('utf-8')
         await member.edit(nick=new_nickname)
         await self.bot.embed_success(ctx, f'Changed {member.mention}\'s nickname.')
 
