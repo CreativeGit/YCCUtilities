@@ -33,7 +33,7 @@ class RolesView(ui.View):
     def __init__(self, bot, roles: list[Role]):
         super().__init__(timeout=None)
         emotes_mapping = {'Art/Animation': '🖌️', 'Music': '🎵', 'Gaming': '🎮', 'Technology': '💻',
-                          'Finance': '💸', 'Infotainment': '📺', 'Other': '❓'}
+                          'Finance': '💸', 'Infotainment': '📺', 'Other Niches': '❓'}
         for role in roles:
             if len(self.children) <= 25:
                 emoji = emotes_mapping[role.name] if role.name in emotes_mapping else '<:role:1014718526075961374>'

@@ -65,7 +65,7 @@ class PunishmentCommands(commands.Cog):
 
         user_logs = ModLogsByUser(user)
         await user_logs.add_log(ctx.author.id, 'Note', reason, 0, 0)
-        await self.bot.embed_success(ctx, f'Note added for {user.mention}.')
+        await self.bot.embed_success(ctx, f'Note added for {user.mention}: {reason}')
 
     @commands.command(
         brief=' <member> *opt<reason>',
@@ -87,7 +87,7 @@ class PunishmentCommands(commands.Cog):
 
         user_logs = ModLogsByUser(member)
         await user_logs.add_log(ctx.author.id, 'Direct Message', reason, 0, 0)
-        await self.bot.embed_success(ctx, f'Sent DM to {member.mention}.')
+        await self.bot.embed_success(ctx, f'Sent DM to {member.mention}: {reason}')
 
     @commands.command(
         brief=' <user> *opt<reason>',
@@ -107,9 +107,9 @@ class PunishmentCommands(commands.Cog):
         try:
             await user.send(embed=Embed(
                 colour=0xf04a47, description=f'***You were warned in {ctx.guild} for:*** {reason}'))
-            await self.bot.embed_success(ctx, f'{user.mention} has been sent a warning.')
+            await self.bot.embed_success(ctx, f'Warned {user.mention}: {reason}')
         except Forbidden:
-            await self.bot.embed_success(ctx, f'Warning logged for {user.mention}. (I could not DM them)')
+            await self.bot.embed_success(ctx, f'Warned {user.mention}: {reason} (I could not DM them)')
 
     @commands.command(
         brief=' <member> *opt<reason>',
@@ -129,9 +129,9 @@ class PunishmentCommands(commands.Cog):
         try:
             await member.send(embed=Embed(colour=0xf04a47,
                                           description=f'***You were kicked from {ctx.guild} for:*** {reason}'))
-            await self.bot.embed_success(ctx, f'{member.mention} has been kicked.')
+            await self.bot.embed_success(ctx, f'Kicked {member.mention}: {reason}')
         except Forbidden:
-            await self.bot.embed_success(ctx, f'{member.mention} has been kicked. (I could not DM them)')
+            await self.bot.embed_success(ctx, f'Kicked {member.mention}: {reason} (I could not DM them)')
 
         await member.kick()
 
@@ -166,9 +166,9 @@ class PunishmentCommands(commands.Cog):
                                         description=f'***You were muted in {ctx.guild} until <t:{lasts_until}:F> '
                                                     f'for:*** {reason}'))
 
-            await self.bot.embed_success(ctx, f'{user.mention} has been muted.')
+            await self.bot.embed_success(ctx, f'Muted {user.mention} for `{duration}`: {reason}')
         except Forbidden:
-            await self.bot.embed_success(ctx, f'{user.mention} has been muted. (I could not DM them)')
+            await self.bot.embed_success(ctx, f'Muted {user.mention} for `{duration}`: {reason} (I could not DM them)')
 
         if member:
             await member.timeout(timedelta(seconds=resolved_duration))
@@ -210,10 +210,10 @@ class PunishmentCommands(commands.Cog):
             message = await user.send(embed=ban_embed)
             await message.edit(view=BanAppealButton(self.bot, message))
 
-            await self.bot.embed_success(ctx, f'{user.mention} has been banned.')
+            await self.bot.embed_success(ctx, f'Banned {user.mention} for `{duration}`: {reason}')
 
         except Forbidden:
-            await self.bot.embed_success(ctx, f'{user.mention} has been banned. (I could not DM them)')
+            await self.bot.embed_success(ctx, f'Banned {user.mention} for `{duration}`: {reason} (I could not DM them)')
 
         await self.bot.guild.ban(user)
 
@@ -253,12 +253,11 @@ class PunishmentCommands(commands.Cog):
 
         try:
             await user.send(embed=Embed(colour=0xf04a47, description=description))
-
-            await self.bot.embed_success(ctx, f'{user.mention} has been blocked from viewing {channel.mention}.')
-
+            await self.bot.embed_success(ctx, f'Blocked {user.mention} from {channel.mention} for `{duration}`: '
+                                              f'{reason}')
         except Forbidden:
-            await self.bot.embed_success(ctx, f'{user.mention} has been blocked from viewing {channel.mention}. '
-                                              f'(I could not DM them)')
+            await self.bot.embed_success(ctx, f'Blocked {user.mention} from {channel.mention} for `{duration}`: '
+                                              f'{reason} (I could not DM them)')
 
         if member:
             await channel.set_permissions(member, view_channel=False)
@@ -283,13 +282,11 @@ class PunishmentCommands(commands.Cog):
         await user_logs.remove_ongoing_logs('Mute', 0)
 
         try:
-            await member.send(embed=Embed(colour=0xf04a47,
-                                          description=f'***You were unmuted in {self.bot.guild} for:*** {reason}'))
-
-            await self.bot.embed_success(ctx, f'{member.mention} has been unmuted.')
-
+            await member.send(embed=Embed(
+                colour=0xf04a47, description=f'***You were unmuted in {self.bot.guild} for:*** {reason}'))
+            await self.bot.embed_success(ctx, f'Unmuted {member.mention}: {reason}')
         except Forbidden:
-            await self.bot.embed_success(ctx, f'{member.mention} has been unmuted. (I could not DM them)')
+            await self.bot.embed_success(ctx, f'Unmuted {member.mention}: {reason} (I could not DM them)')
 
         await member.timeout(None)
 
@@ -313,13 +310,11 @@ class PunishmentCommands(commands.Cog):
         await user_logs.remove_ongoing_logs('Ban', 0)
 
         try:
-            await user.send(embed=Embed(colour=0xf04a47,
-                                        description=f'***You were unbanned from {self.bot.guild} for:*** {reason}'))
-
-            await self.bot.embed_success(ctx, f'{user.mention} has been unbanned.')
-
+            await user.send(embed=Embed(
+                colour=0xf04a47, description=f'***You were unbanned from {self.bot.guild} for:*** {reason}'))
+            await self.bot.embed_success(ctx, f'Unbanned {user.mention}: {reason}')
         except Forbidden:
-            await self.bot.embed_success(ctx, f'{user.mention} has been unbanned. (I could not DM them)')
+            await self.bot.embed_success(ctx, f'Unbanned {user.mention}: {reason} (I could not DM them)')
 
         await self.bot.guild.unban(user)
 
@@ -344,14 +339,12 @@ class PunishmentCommands(commands.Cog):
         await user_logs.remove_ongoing_logs('Channel Ban', channel.id)
 
         try:
-            await user.send(embed=Embed(colour=0xf04a47,
-                                        description=f'***You were unblocked from viewing `#{channel.name}` in '
-                                                    f'{self.bot.guild} for:*** {reason}'))
-
-            await self.bot.embed_success(ctx, f'{user.mention} has been unblocked from viewing {channel.mention}.')
-
+            await user.send(embed=Embed(
+                colour=0xf04a47,
+                description=f'***You were unblocked from viewing `#{channel}` in {self.bot.guild} for:*** {reason}'))
+            await self.bot.embed_success(ctx, f'Unblocked {user.mention} from {channel.mention}: {reason}')
         except Forbidden:
-            await self.bot.embed_success(ctx, f'{user.mention} has been unblocked from viewing {channel.mention}. '
+            await self.bot.embed_success(ctx, f'Unblocked {user.mention} from {channel.mention}: {reason} '
                                               f'(I could not DM them)')
 
         if ctx.guild.get_member(user.id):

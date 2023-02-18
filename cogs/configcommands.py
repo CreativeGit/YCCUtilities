@@ -374,7 +374,7 @@ class ConfigCommands(commands.Cog):
         try:
             await message.edit(view=RolesView(self.bot, role_list))
             await self.bot.add_pers_role_view(role_list)
-            await self.bot.embed_success(ctx, 'Embed posted!')
+            await self.bot.embed_success(ctx, 'Message edited.')
         except Forbidden:
             await self.bot.embed_error(ctx, 'Could not edit message.')
 
