@@ -94,22 +94,20 @@ class InfoCommands(commands.Cog):
             return
         elif not user:
             user = ctx.author
-        member = self.bot.guild.get_member(user.id)
+        member = await self.bot.get_or_fetch_member(user.id)
 
         bool_dict = {True: '**Yes**', False: '**No**'}
 
         user_info_embed = Embed(colour=0x337fd5, title=user, description=user.mention)
 
         user_info_embed.set_author(name='User Info', icon_url=self.bot.user.avatar.url)
-        user_info_embed.set_thumbnail(url=user.avatar.url if user.avatar else user.default_avatar.url)
+        user_info_embed.set_thumbnail(url=user.avatar if user.avatar else user.default_avatar)
         user_info_embed.set_footer(text=f'User ID: {user.id}')
 
-        user_info_embed.add_field(name='In Guild:', value='**Yes**' if member else '**No**', inline=True)
+        user_info_embed.add_field(name='In Guild:', value=bool_dict[bool(member)], inline=True)
 
         user_info_embed.add_field(name='Banned:',
-                                  value='**Yes**' if user in [entry.user async for entry in
-                                                              self.bot.guild.bans(limit=100)]
-                                  else '**No**',
+                                  value=bool_dict[user.id in self.bot.banned_user_ids],
                                   inline=True)
 
         user_info_embed.add_field(name='Muted:',

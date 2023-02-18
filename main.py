@@ -69,6 +69,8 @@ class YCCUtilities(commands.Bot):
 
         self.immune_roles = []
 
+        self.banned_user_ids = []
+
         self.staff_form = os.getenv('STAFF_FORM')
 
         self.db = None
@@ -412,11 +414,10 @@ class YCCUtilities(commands.Bot):
             command_list.append(entry[0])
         return command_list
 
-    @staticmethod
-    async def bot_help(ctx: commands.Context, mapping: Mapping) -> None:
+    async def bot_help(self, ctx: commands.Context, mapping: Mapping) -> None:
         help_menu_embed = Embed(colour=0x337fd5, title='All Commands')
-        help_menu_embed.set_author(name='Help Menu', icon_url=bot.user.avatar.url)
-        help_menu_embed.set_footer(text=f'Use {bot.command_prefix}help <command> for more info on a single command.')
+        help_menu_embed.set_author(name='Help Menu', icon_url=self.user.avatar.url)
+        help_menu_embed.set_footer(text=f'Use {self.command_prefix}help <command> for more info on a single command.')
 
         cog_name_dict = {'ConfigCommands': 'Server Configuration Commands',
                          'MiscCommands': 'Miscellaneous Commands',
@@ -437,16 +438,16 @@ class YCCUtilities(commands.Bot):
     async def command_help(self, ctx: commands.Context, command: commands.Command) -> None:
         command_help_embed = Embed(
             colour=0x337fd5,
-            title=f'{bot.command_prefix}{command.qualified_name} Command',
+            title=f'{self.command_prefix}{command.qualified_name} Command',
             description=command.description.replace('<required-role>', self.clearance_mapping()[command.extras]))
 
-        command_help_embed.set_author(name='Help Menu', icon_url=bot.user.avatar.url)
-        command_help_embed.set_footer(text=f'Use {bot.command_prefix}help to view all commands.')
+        command_help_embed.set_author(name='Help Menu', icon_url=self.user.avatar)
+        command_help_embed.set_footer(text=f'Use {self.command_prefix}help to view all commands.')
 
         command_help_embed.add_field(name='Usage:',
-                                     value=f'`{bot.command_prefix}{command.qualified_name}{command.brief}`'
+                                     value=f'`{self.command_prefix}{command.qualified_name}{command.brief}`'
                                      if command.qualified_name != 'help'
-                                     else f'`{bot.command_prefix}help opt<command-name>`',
+                                     else f'`{self.command_prefix}help opt<command-name>`',
                                      inline=False)
 
         command_help_embed.add_field(name='Aliases:',
@@ -500,7 +501,7 @@ class YCCUtilities(commands.Bot):
 
         for log in expired_logs:
             try:
-                user = await bot.fetch_user(log[0])
+                user = await self.fetch_user(log[0])
             except (HTTPException, NotFound):
                 continue
 
@@ -578,6 +579,9 @@ class YCCUtilities(commands.Bot):
         except ValueError:
             logging.fatal('Invalid role ID(s) found.')
             exit()
+
+        logging.info('Fetching guild bans, this may take some time...')
+        self.banned_user_ids = [entry.user.id async for entry in self.guild.bans(limit=None)]
 
         logging.info(f'Logging in as {self.user} (ID: {self.user.id})...')
 

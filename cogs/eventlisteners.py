@@ -14,7 +14,6 @@ from discord import (
     Guild,
     utils)
 from core.pageviewer import BulkDeletionViewer
-from core.modlogs import BanAppealButton, ModLogsByUser
 from math import floor
 from typing import Union
 from datetime import timedelta
@@ -45,82 +44,44 @@ class EventListeners(commands.Cog):
 
         for command in await self.bot.custom_commands():
             if message.content.lower().startswith(f'{self.bot.command_prefix}{command[0]}'):
+
                 ctx = commands.Context(message=message, bot=self.bot, view=StringView(''))
+                cor_cmd = self.bot.get_command(command[1])
 
                 try:
                     member = await commands.MemberConverter().convert(ctx, message.content.split(' ')[1])
-                except (IndexError, commands.CommandError):
+                except IndexError:
+                    help_embed = Embed(
+                        colour=0x337fd5,
+                        title=f'{self.bot.command_prefix}{command[0]} Command',
+                        description=f'This is a user-created custom command. '
+                                    f'{command[1].capitalize()}s the specified member'
+                                    f'{" for the corresponding duration" if command[3] else " "} '
+                                    f'and creates a new entry in their modlogs history. '
+                                    f'Requires {self.bot.clearance_mapping()[cor_cmd.extras]} or higher.')
+
+                    help_embed.set_author(name='Help Menu', icon_url=self.bot.user.avatar)
+                    help_embed.set_footer(text=f'Use {self.bot.command_prefix}help to view all commands.')
+
+                    help_embed.add_field(name='Reason:', value=f'`{command[2]}`')
+                    if command[3]:
+                        help_embed.add_field(name='Duration:', value=f'`{timedelta(seconds=command[3])}`')
+
+                    help_embed.add_field(
+                        name='Usage:', value=f'`{self.bot.command_prefix}{command[0]} <member>`', inline=False)
+                    help_embed.add_field(
+                        name='Aliases:', value='`None`', inline=False)
+
+                    await ctx.send(embed=help_embed)
+                    return
+                except commands.CommandError:
                     await self.bot.embed_error(ctx, 'Member not found.')
                     return
 
-                if self.bot.member_clearance(member):
-                    await self.bot.embed_error(ctx, f'Could not punish {member.mention}.')
-                    return
-
-                if command[1] == 'Warn':
-                    try:
-                        await member.send(embed=Embed(
-                            colour=0xf04a47,
-                            description=f'***You were warned in {ctx.guild} for:*** {command[2]}'))
-                        await self.bot.embed_success(ctx, f'{member.mention} has been sent a warning.')
-                    except Forbidden:
-                        await self.bot.embed_success(ctx, f'Warning logged for {member.mention}. (I could not DM them)')
-
-                elif command[1] == 'Mute':
-                    if self.bot.member_clearance(ctx.author) < 2:
-                        return
-
-                    lasts_until = floor(utils.utcnow().timestamp() + command[3])
-                    try:
-                        await member.send(embed=Embed(
-                            colour=0xf04a47,
-                            description=f'***You were muted in {ctx.guild} until <t:{lasts_until}:F> for:*** '
-                                        f'{command[2]}'))
-                        await self.bot.embed_success(ctx, f'{member.mention} has been muted.')
-
-                    except Forbidden:
-                        await self.bot.embed_success(ctx, f'{member.mention} has been muted. (I could not DM them)')
-
-                    await member.timeout(timedelta(seconds=command[3]))
-
-                elif command[1] == 'Kick':
-                    if self.bot.member_clearance(ctx.author) < 2:
-                        return
-
-                    try:
-                        await member.send(embed=Embed(
-                            colour=0xf04a47,
-                            description=f'***You were kicked from {ctx.guild} for:*** {command[2]}'))
-                        await self.bot.embed_success(ctx, f'{member.mention} has been kicked.')
-
-                    except Forbidden:
-                        await self.bot.embed_success(ctx, f'{member.mention} has been kicked. (I could not DM them)')
-
-                    await member.kick()
-
-                elif command[1] == 'Ban':
-                    if self.bot.member_clearance(ctx.author) < 3:
-                        return
-
-                    lasts_until = floor(utils.utcnow().timestamp() + command[3])
-                    try:
-                        ban_message = await member.send(embed=Embed(
-                            colour=0xf04a47,
-                            description=f'***You were banned from {ctx.guild} until <t:{lasts_until}:F> for:*** '
-                                        f'{command[2]}'))
-                        await ban_message.edit(view=BanAppealButton(self.bot, ban_message))
-                        await self.bot.embed_success(ctx, f'{member.mention} has been banned.')
-
-                    except Forbidden:
-                        await self.bot.embed_success(ctx, f'{member.mention} has been banned. (I could not DM them)')
-
-                    await member.ban()
-
-                user_logs = ModLogsByUser(member)
-                await user_logs.add_log(message.author.id, command[1], command[2], command[3], 0)
-                await self.bot.add_modstat(message.author.id, command[1])
-
-                return
+                if command[1] in ['Warn', 'Kick']:
+                    await ctx.invoke(cor_cmd, member, reason=command[2])
+                elif command[1] in ['Mute', 'Ban']:
+                    await ctx.invoke(cor_cmd, member, f'{command[3]}s', reason=command[2])
 
     @commands.Cog.listener()
     async def on_message_delete(self, message: Message):
@@ -398,6 +359,9 @@ class EventListeners(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_ban(self, guild: Guild, member: Union[User, Member]):
+        if member.id not in self.bot.banned_user_ids:
+            self.bot.banned_user_ids.append(member.id)
+
         if not self.bot.log_channel or guild != self.bot.guild:
             return
 
@@ -413,6 +377,9 @@ class EventListeners(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_unban(self, guild: Guild, user: User):
+        if user.id in self.bot.banned_user_ids:
+            self.bot.banned_user_ids.remove(user.id)
+
         if not self.bot.log_channel or guild != self.bot.guild:
             return
 

@@ -15,6 +15,11 @@ from core.duration import DurationConverter
 from datetime import timedelta
 
 
+class Dictio(dict):
+    def sort(self, reverse: bool) -> dict:
+        return {a: b for a, b in sorted(self.items(), key=lambda x: x[1], reverse=reverse)}
+
+
 class UserStatistics(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -31,41 +36,37 @@ class UserStatistics(commands.Cog):
     async def sorted_activity_data(self, resolved_duration: int):
         all_stats = await self.bot.activity_stats(resolved_duration)
 
-        messages_by_member = {}
+        messages_by_member = Dictio({})
         for item in all_stats[0]:
-            if item[0] not in messages_by_member:
-                messages_by_member.update({item[0]: 1})
-            else:
+            try:
                 messages_by_member[item[0]] += 1
-        messages_by_member = {member: count for member, count in sorted(messages_by_member.items(),
-                                                                        key=lambda count: count[1], reverse=True)}
+            except KeyError:
+                messages_by_member[item[0]] = 1
+        messages_by_member = messages_by_member.sort(reverse=True)
 
-        messages_by_channel = {}
+        messages_by_channel = Dictio({})
         for item in all_stats[0]:
-            if item[1] not in messages_by_channel:
-                messages_by_channel.update({item[1]: 1})
-            else:
+            try:
                 messages_by_channel[item[1]] += 1
-        messages_by_channel = {channel: count for channel, count in sorted(messages_by_channel.items(),
-                                                                           key=lambda count: count[1], reverse=True)}
+            except KeyError:
+                messages_by_channel[item[1]] = 1
+        messages_by_channel = messages_by_channel.sort(reverse=True)
 
-        vc_time_by_member = {}
+        vc_time_by_member = Dictio({})
         for item in all_stats[1]:
-            if item[0] not in vc_time_by_member:
-                vc_time_by_member.update({item[0]: item[3] - item[2]})
-            else:
+            try:
                 vc_time_by_member[item[0]] += item[3] - item[2]
-        vc_time_by_member = {member: time for member, time in sorted(vc_time_by_member.items(),
-                                                                     key=lambda time: time[1], reverse=True)}
+            except KeyError:
+                vc_time_by_member[item[0]] = item[3] - item[2]
+        vc_time_by_member = vc_time_by_member.sort(reverse=True)
 
-        vc_time_by_channel = {}
+        vc_time_by_channel = Dictio({})
         for item in all_stats[1]:
-            if item[1] not in vc_time_by_channel:
-                vc_time_by_channel.update({item[1]: item[3] - item[2]})
-            else:
+            try:
                 vc_time_by_channel[item[1]] += item[3] - item[2]
-        vc_time_by_channel = {channel: time for channel, time in sorted(vc_time_by_channel.items(),
-                                                                        key=lambda time: time[1], reverse=True)}
+            except KeyError:
+                vc_time_by_channel[item[1]] = item[3] - item[2]
+        vc_time_by_channel = vc_time_by_channel.sort(reverse=True)
 
         return messages_by_member, messages_by_channel, vc_time_by_member, vc_time_by_channel
 
@@ -119,15 +120,12 @@ class UserStatistics(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: Message):
-        if message.author.bot or not message.guild:
-            return
-        self.message_data.append((message.author.id, message.channel.id, floor(message.created_at.timestamp())))
+        if not message.author.bot and message.guild == self.bot.guild:
+            self.message_data.append((message.author.id, message.channel.id, floor(message.created_at.timestamp())))
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):
-        if member.bot:
-            return
-        if before.channel == after.channel:
+        if member.bot or before.channel == after.channel:
             return
         if not before.channel:
             self.vc_data_ongoing.append((member.id, after.channel.id, floor(utils.utcnow().timestamp())))

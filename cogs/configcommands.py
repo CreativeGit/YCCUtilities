@@ -292,12 +292,12 @@ class ConfigCommands(commands.Cog):
             await self.bot.embed_success(ctx, 'Embed posted!')
 
     @commands.command(
-        brief=' <text-channel> <role-ids>',
+        brief=' <text-channel> *<role-ids>',
         description='Posts an embedded message in the specified text channel with dynamically-produced role buttons '
                     'attached. These buttons can be pressed by any user to add/remove their respective role. You can '
                     'customise an embedded message **[here](https://discohook.org/)**, copy the JSON data and save it '
                     'as a `.json` file. This file should be attached to your message whilst invoking the command. '
-                    'Message content and attachments are not currently supported. Requires <required-role> or higher. ',
+                    'Message content and attachments are not currently supported. Requires <required-role> or higher.',
         extras=7)
     @commands.guild_only()
     async def rolesetup(self, ctx: commands.Context, channel: TextChannel, *, roles: str):
@@ -343,6 +343,40 @@ class ConfigCommands(commands.Cog):
                 await self.bot.embed_success(ctx, 'Message edited.')
             except Forbidden:
                 await self.bot.embed_error(ctx, 'Could not edit message.')
+
+    @commands.command(
+        brief=' <text-channel> <message-id> *<role-ids>',
+        description='Edits an embedded message sent by the bot, and replaces the view component  with '
+                    'dynamically-produced role buttons. These buttons can be pressed by any user to add/remove their '
+                    'respective role. Requires <required-role> or higher.',
+        extras=7)
+    @commands.guild_only()
+    async def editview(self, ctx: commands.Context, channel: TextChannel, message_id: int, *, roles: str):
+        if self.bot.member_clearance(ctx.author) < 7:
+            return
+
+        try:
+            message = await channel.fetch_message(message_id)
+        except (NotFound, Forbidden, HTTPException):
+            await self.bot.embed_error(ctx, 'Message not found.')
+            return
+
+        try:
+            role_list = [self.bot.guild.get_role(int(role_id)) for role_id in roles.split(' ')]
+        except ValueError:
+            await self.bot.embed_error(ctx, 'Invalid/unknown role ID(s) passed.')
+            return
+        else:
+            if None in role_list:
+                await self.bot.embed_error(ctx, 'Invalid/unknown role ID(s) passed.')
+                return
+
+        try:
+            await message.edit(view=RolesView(self.bot, role_list))
+            await self.bot.add_pers_role_view(role_list)
+            await self.bot.embed_success(ctx, 'Embed posted!')
+        except Forbidden:
+            await self.bot.embed_error(ctx, 'Could not edit message.')
 
     @commands.command(
         brief='',

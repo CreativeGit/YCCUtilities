@@ -185,7 +185,7 @@ class PunishmentCommands(commands.Cog):
         member = await self.bot.get_or_fetch_member(user.id)
         if self.bot.member_clearance(member) or self.bot.member_clearance(ctx.author) < 3:
             return
-        elif not member and user in [entry.user async for entry in self.bot.guild.bans()]:
+        elif user.id in self.bot.banned_user_ids:
             await self.bot.embed_error(ctx, f'{user.mention} is already banned.')
             return
 
@@ -298,13 +298,13 @@ class PunishmentCommands(commands.Cog):
         aliases=['ub'],
         description='Unbans a user from the guild, creates a new modlogs entry and DMs them the reason. Requires '
                     '<required-role> or higher.',
-        extras=5)
+        extras=6)
     @commands.bot_has_permissions(ban_members=True)
     @commands.guild_only()
     async def unban(self, ctx: commands.Context, user: User, *, reason: str = 'No reason given.'):
-        if self.bot.member_clearance(ctx.author) < 5:
+        if self.bot.member_clearance(ctx.author) < 6:
             return
-        elif user not in [entry.user async for entry in self.bot.guild.bans()]:
+        elif user.id not in self.bot.banned_user_ids:
             await self.bot.embed_error(ctx, f'{user.mention} is not banned.')
             return
 
