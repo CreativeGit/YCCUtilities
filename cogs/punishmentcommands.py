@@ -12,7 +12,7 @@ from core.modlogs import ModLogsByUser, BanAppealButton
 from core.duration import DurationConverter
 from math import floor
 from typing import Union
-from datetime import timedelta
+from datetime import timedelta as time_d
 
 
 class PunishmentCommands(commands.Cog):
@@ -166,12 +166,14 @@ class PunishmentCommands(commands.Cog):
                                         description=f'***You were muted in {ctx.guild} until <t:{lasts_until}:F> '
                                                     f'for:*** {reason}'))
 
-            await self.bot.embed_success(ctx, f'Muted {user.mention} for `{duration}`: {reason}')
+            await self.bot.embed_success(
+                ctx, f'Muted {user.mention} for `{time_d(seconds=resolved_duration)}`: {reason}')
         except Forbidden:
-            await self.bot.embed_success(ctx, f'Muted {user.mention} for `{duration}`: {reason} (I could not DM them)')
+            await self.bot.embed_success(
+                ctx, f'Muted {user.mention} for `{time_d(seconds=resolved_duration)}`: {reason} (I could not DM them)')
 
         if member:
-            await member.timeout(timedelta(seconds=resolved_duration))
+            await member.timeout(time_d(seconds=resolved_duration))
 
     @commands.command(
         brief=' <user> <duration> *opt<reason>',
@@ -210,10 +212,12 @@ class PunishmentCommands(commands.Cog):
             message = await user.send(embed=ban_embed)
             await message.edit(view=BanAppealButton(self.bot, message))
 
-            await self.bot.embed_success(ctx, f'Banned {user.mention} for `{duration}`: {reason}')
+            await self.bot.embed_success(
+                ctx, f'Banned {user.mention} for `{time_d(seconds=resolved_duration)}`: {reason}')
 
         except Forbidden:
-            await self.bot.embed_success(ctx, f'Banned {user.mention} for `{duration}`: {reason} (I could not DM them)')
+            await self.bot.embed_success(
+                ctx, f'Banned {user.mention} for `{time_d(seconds=resolved_duration)}`: {reason} (I could not DM them)')
 
         await self.bot.guild.ban(user)
 
@@ -253,11 +257,13 @@ class PunishmentCommands(commands.Cog):
 
         try:
             await user.send(embed=Embed(colour=0xf04a47, description=description))
-            await self.bot.embed_success(ctx, f'Blocked {user.mention} from {channel.mention} for `{duration}`: '
-                                              f'{reason}')
+            await self.bot.embed_success(
+                ctx, f'Blocked {user.mention} from {channel.mention} for `{time_d(seconds=resolved_duration)}`: '
+                     f'{reason}')
         except Forbidden:
-            await self.bot.embed_success(ctx, f'Blocked {user.mention} from {channel.mention} for `{duration}`: '
-                                              f'{reason} (I could not DM them)')
+            await self.bot.embed_success(
+                ctx, f'Blocked {user.mention} from {channel.mention} for `{time_d(seconds=resolved_duration)}`: '
+                     f'{reason} (I could not DM them)')
 
         if member:
             await channel.set_permissions(member, view_channel=False)
@@ -452,7 +458,7 @@ class PunishmentCommands(commands.Cog):
             return
 
         await ctx.channel.edit(slowmode_delay=resolved_duration)
-        await self.bot.embed_success(ctx, f'Slowmode set to `{timedelta(seconds=resolved_duration)}`.')
+        await self.bot.embed_success(ctx, f'Slowmode set to `{time_d(seconds=resolved_duration)}`.')
 
     @commands.command(
         brief=' opt<channel>',
