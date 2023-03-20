@@ -64,10 +64,16 @@ class TriviaModule(commands.Cog):
             self.weekly_reset.start()
             self.wait_for_time.stop()
 
+    @tasks.loop(seconds=5)
+    async def check_weekly(self):
+        if not self.weekly_reset.is_running():
+            self.weekly_reset.start()
+
     @tasks.loop(hours=168)
     async def weekly_reset(self):
         self.weekly_lb = {}
         self.trivia_cycle.start()
+        self.check_weekly.start()
 
     @tasks.loop(hours=8, count=21)
     async def trivia_cycle(self):

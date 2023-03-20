@@ -73,7 +73,7 @@ class InfoCommands(commands.Cog):
         description='View a user\'s global avatar. Requires <required-role> or higher.',
         extras=1)
     @commands.guild_only()
-    async def avatar(self, ctx: commands.Context, user: User = None):
+    async def avatar(self, ctx: commands.Context, *, user: User = None):
         if self.bot.member_clearance(ctx.author) < 1:
             return
         elif not user:
@@ -89,7 +89,7 @@ class InfoCommands(commands.Cog):
         description='View information about a user. Requires <required-role> or higher.',
         extras=1)
     @commands.guild_only()
-    async def userinfo(self, ctx: commands.Context, user: User = None):
+    async def userinfo(self, ctx: commands.Context, *, user: User = None):
         if self.bot.member_clearance(ctx.author) < 1:
             return
         elif not user:
