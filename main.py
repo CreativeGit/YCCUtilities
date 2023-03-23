@@ -436,6 +436,9 @@ class YCCUtilities(commands.Bot):
         await ctx.send(embed=help_menu_embed)
 
     async def command_help(self, ctx: commands.Context, command: commands.Command) -> None:
+        if self.member_clearance(ctx.author) == 0 and isinstance(command.extras, int) and command.extras > 0:
+            return
+
         command_help_embed = Embed(
             colour=0x337fd5,
             title=f'{self.command_prefix}{command.qualified_name} Command',
