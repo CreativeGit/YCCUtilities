@@ -460,6 +460,12 @@ class YCCUtilities(commands.Bot):
         await ctx.send(embed=command_help_embed)
 
     async def on_command_error(self, ctx: commands.Context, error: Exception) -> None:
+        try:
+            if self.member_clearance(ctx.author) < ctx.command.extras:
+                return
+        except TypeError:
+            pass
+
         if isinstance(error, commands.CommandOnCooldown):
             await self.embed_error(ctx, f'Whoa there! Wait `{floor(error.retry_after)}s` before trying that again.')
 
