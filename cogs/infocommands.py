@@ -98,7 +98,7 @@ class InfoCommands(commands.Cog):
 
         bool_dict = {True: '**Yes**', False: '**No**'}
 
-        user_info_embed = Embed(colour=0x337fd5, title=user, description=user.mention)
+        user_info_embed = Embed(colour=0x337fd5, title=user.name, description=user.mention)
 
         user_info_embed.set_author(name='User Info', icon_url=self.bot.user.avatar.url)
         user_info_embed.set_thumbnail(url=user.avatar if user.avatar else user.default_avatar)

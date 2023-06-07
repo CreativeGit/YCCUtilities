@@ -463,7 +463,7 @@ class YCCUtilities(commands.Bot):
         try:
             if self.member_clearance(ctx.author) < ctx.command.extras:
                 return
-        except TypeError:
+        except (TypeError, AttributeError):
             pass
 
         if isinstance(error, commands.CommandOnCooldown):
