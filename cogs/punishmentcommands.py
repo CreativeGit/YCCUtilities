@@ -219,7 +219,7 @@ class PunishmentCommands(commands.Cog):
             await self.bot.embed_success(
                 ctx, f'Banned {user.mention} for `{time_d(seconds=resolved_duration)}`: {reason} (I could not DM them)')
 
-        await self.bot.guild.ban(user)
+        await self.bot.guild.ban(user, delete_message_days=0)
 
     @commands.command(
         brief=' <user> <duration> <channel> *opt<reason>',
